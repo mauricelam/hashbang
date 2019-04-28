@@ -5,7 +5,7 @@ $ no_arguments.py
 Hello world
 '''
 
-from command import command
+from hashbang import command
 
 @command
 def main():

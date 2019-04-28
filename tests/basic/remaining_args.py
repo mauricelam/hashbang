@@ -11,7 +11,7 @@ $ remaining_args.py 123 456 789 --aloha --flag1
 arg1=123 __rest__=('456', '789', '--aloha') flag1=True
 '''
 
-from command import command, Argument
+from hashbang import command, Argument
 
 @command
 def main(arg1, *__rest__, flag1=False):

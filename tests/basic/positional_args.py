@@ -9,7 +9,7 @@ usage: positional_args.py [-h] arg1 arg2
 positional_args.py: error: the following arguments are required: arg2
 '''
 
-from command import command
+from hashbang import command
 
 @command
 def main(arg1, arg2):

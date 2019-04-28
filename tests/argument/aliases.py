@@ -21,7 +21,7 @@ usage: aliases.py [--flag1] [--flag2] [-h]
 aliases.py: error: ambiguous option: --f could match *
 '''
 
-from command import command, Argument
+from hashbang import command, Argument
 
 @command
 def main(*,

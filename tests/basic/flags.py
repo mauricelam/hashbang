@@ -11,7 +11,7 @@ $ flags.py
 flag1=False flag2=True
 '''
 
-from command import command
+from hashbang import command
 
 @command
 def main(*, flag1=False, flag2=True):

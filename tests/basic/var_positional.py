@@ -33,7 +33,7 @@ $ var_positional.py --help  # returncode=100
 >   -h, --help  show this help message and exit
 '''
 
-from command import command, Argument
+from hashbang import command
 
 @command
 def main(arg1, arg2='two', *args):

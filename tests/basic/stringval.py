@@ -12,7 +12,7 @@ $ stringval.py --flag1=ONE
 flag1=ONE
 '''
 
-from command import command
+from hashbang import command
 
 @command
 def main(*, flag1='hello'):

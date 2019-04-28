@@ -11,7 +11,7 @@ $ combination.py 123 456 789 --opt='halo'
 arg1=123 arg2=456 args=('789',) flag1=False flag2=True opt=halo
 '''
 
-from command import command, Argument
+from hashbang import command
 
 @command
 def main(
