@@ -35,9 +35,11 @@ $ var_positional.py --help  # returncode=100
 
 from hashbang import command
 
+
 @command
 def main(arg1, arg2='two', *args):
     print('arg1={} arg2={} args={}'.format(arg1, arg2, args))
+
 
 if __name__ == '__main__':
     main.execute()

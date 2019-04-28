@@ -7,10 +7,12 @@ Hello world
 
 from hashbang import command
 
+
 @command
 def main():
     '''Function with no arguments'''
     print('Hello world')
+
 
 if __name__ == '__main__':
     main.execute()

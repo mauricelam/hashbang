@@ -13,15 +13,18 @@ arg1=123 arg2=456 args=('789',) flag1=False flag2=True opt=halo
 
 from hashbang import command
 
+
 @command
 def main(
-    arg1,
-    arg2='two',
-    *args,
-    flag1=False,
-    flag2=True,
-    opt='default'):
-    print('arg1={} arg2={} args={} flag1={} flag2={} opt={}'.format(arg1, arg2, args, flag1, flag2, opt))
+        arg1,
+        arg2='two',
+        *args,
+        flag1=False,
+        flag2=True,
+        opt='default'):
+    print('arg1={} arg2={} args={} flag1={} flag2={} opt={}'.format(
+            arg1, arg2, args, flag1, flag2, opt))
+
 
 if __name__ == '__main__':
     main.execute()

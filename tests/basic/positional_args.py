@@ -11,9 +11,11 @@ positional_args.py: error: the following arguments are required: arg2
 
 from hashbang import command
 
+
 @command
 def main(arg1, arg2):
     print('arg1={} arg2={}'.format(arg1, arg2))
+
 
 if __name__ == '__main__':
     main.execute()

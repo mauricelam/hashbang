@@ -14,9 +14,11 @@ flag1=ONE
 
 from hashbang import command
 
+
 @command
 def main(*, flag1='hello'):
     print('flag1={}'.format(flag1))
+
 
 if __name__ == '__main__':
     main.execute()

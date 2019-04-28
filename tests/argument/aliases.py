@@ -23,11 +23,13 @@ aliases.py: error: ambiguous option: --f could match *
 
 from hashbang import command, Argument
 
+
 @command
 def main(*,
-    flag1 : Argument(aliases=('f', 'flagone')) = False,
-    flag2 : Argument(aliases='Ft') = True):
+         flag1: Argument(aliases=('f', 'flagone')) = False,
+         flag2: Argument(aliases='Ft') = True):
     print('flag1={} flag2={}'.format(flag1, flag2))
+
 
 if __name__ == '__main__':
     main.execute()
