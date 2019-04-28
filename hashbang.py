@@ -12,8 +12,9 @@ import sys
 import traceback
 
 from collections import OrderedDict
-from pathlib import Path
+from inspect import Parameter
 from itertools import chain, islice, repeat
+from pathlib import Path
 
 
 def optionalarg(decorator):
@@ -58,8 +59,9 @@ class CommandParser(argparse.ArgumentParser):
 class CommandSpec:
     def __init__(self, func, arguments=None, partial=False):
         self.func = func
-        self.signature = Signature.inspect(func)
-        self.description, self.usage, self.param_docs = CommandSpec.parse_doc(func)
+        self.signature = inspect.signature(func)
+        self.description, self.usage, \
+            self.param_docs = CommandSpec.parse_doc(func)
         self.arguments = arguments or {}
         self.partial = partial
 
@@ -554,89 +556,3 @@ def MasterCommand(**kwargs):
                 _run._command.prog or Path(sys.argv[0]).name, key)
 
     return _run._command
-
-
-# SIGNATURE BLOCK
-
-
-class Atom:
-    def __init__(self, description='Atom'):
-        self.description = description
-
-    def __eq__(self, other):
-        return self is other
-
-    def __str__(self):
-        return self.description
-
-
-class Parameter:
-    empty = Atom('empty parameter')
-
-    POSITIONAL_ONLY = Atom('positional_only')
-    POSITIONAL_OR_KEYWORD = Atom('positional_or_keyword')
-    VAR_POSITIONAL = Atom('var_positional')
-    KEYWORD_ONLY = Atom('keyword_only')
-    VAR_KEYWORD = Atom('var_keyword')
-
-    def __init__(self, name, kind, *, default=empty, annotation=empty):
-        self.name = name
-        self.kind = kind
-        self.default = default
-        self.annotation = annotation
-
-
-class Signature:
-    empty = Atom('empty annotation')
-
-    def __init__(self, parameters=None, *, return_annotation=empty):
-        self.parameters = parameters
-        self.return_annotation = return_annotation
-
-    @staticmethod
-    def inspect(func):
-        args, varargs, varkw, \
-                defaults, kwonlyargs, \
-                kwonlydefaults, annotations = inspect.getfullargspec(func)
-        defaults = defaults or []
-        kwonlydefaults = kwonlydefaults or {}
-        parameters = OrderedDict()
-        for arg, default in _zipright(args, defaults, filler=Parameter.empty):
-            parameters[arg] = Parameter(
-                    arg,
-                    Parameter.POSITIONAL_OR_KEYWORD,
-                    default=default,
-                    annotation=annotations.get(arg, Parameter.empty))
-        if varargs:
-            parameters[varargs] = Parameter(
-                    varargs,
-                    Parameter.VAR_POSITIONAL,
-                    annotation=annotations.get(varargs, Parameter.empty))
-        for arg in kwonlyargs:
-            # Iterate on kwonlyargs because it is ordered
-            default = kwonlydefaults[arg]
-            parameters[arg] = Parameter(
-                    arg,
-                    Parameter.KEYWORD_ONLY,
-                    default=default,
-                    annotation=annotations.get(arg, Parameter.empty))
-        if varkw:
-            parameters[varkw] = Parameter(
-                    varkw,
-                    Parameter.VAR_KEYWORD,
-                    annotation=annotations.get(varkw, Parameter.empty))
-        return Signature(parameters)
-
-
-# UTILS BLOCK
-
-
-def _zipright(seq1, seq2, filler=None):
-    '''
-    Zips seq1 and seq2 together. If seq1 and seq2 have different lengths, the
-    shorter one will be padded on the left side before zipping.
-    '''
-    maxlen = max(len(seq1), len(seq2))
-    return zip(
-            chain(([filler] * (maxlen - len(seq1))), seq1),
-            chain(([filler] * (maxlen - len(seq2))), seq2))
