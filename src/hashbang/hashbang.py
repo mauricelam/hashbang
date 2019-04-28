@@ -3,7 +3,6 @@ try:
 except ImportError:
     argcomplete = None
 import argparse
-import functools
 import inspect
 import os
 import re
@@ -15,34 +14,7 @@ from collections import OrderedDict
 from inspect import Parameter
 from itertools import chain, islice, repeat
 from pathlib import Path
-
-
-def optionalarg(decorator):
-    '''
-    Transforms a decorator `decorator(func, args)` into a decorator that can be
-    executed both with @decorator and @decorator(args)
-    '''
-    @functools.wraps(decorator)
-    def __decorator(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            # Execute the decorator immediately
-            func = args[0]
-            return decorator(func, **kwargs)
-        else:
-            def __impl(func):
-                return decorator(func, args, **kwargs)
-            return __impl
-
-    return __decorator
-
-
-def log(*objects, **kwargs):
-    if log.verbose:
-        print(*objects, file=log.file, **kwargs)
-
-
-log.verbose = False
-log.file = sys.stderr
+from ._utils import optionalarg, log
 
 
 class CommandParser(argparse.ArgumentParser):
@@ -340,9 +312,7 @@ class CommandObj:
             retval = self.execute_with_list(args=args)
             retval and print(retval)
             sys.exit(0)
-        except subprocess.CalledProcessError as e:
-            print('Error:', str(e), file=sys.stderr)
-        except RuntimeError as e:
+        except (subprocess.CalledProcessError, RuntimeError) as e:
             print('Error:', str(e), file=sys.stderr)
         except KeyboardInterrupt as e:
             print('^C', file=sys.stderr)

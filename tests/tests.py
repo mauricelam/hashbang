@@ -32,7 +32,7 @@ class Test(unittest.TestCase):
                 sys.executable + ' ' + command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env={'PYTHONPATH': os.getcwd()},
+                env={'PYTHONPATH': str(Path.cwd()/'src')},
                 cwd=cwd,
                 shell=True,
                 universal_newlines=True)
@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
                         doctest.make_assertion(self, stdout, stderr)
 
     def test_decorator(self):
-        sys.path.append(os.getcwd())
+        sys.path.append('src')
         noarg = SourceFileLoader(
             'module.name',
             str(TEST_DIR/'basic'/'no_arguments.py')).load_module()
@@ -102,8 +102,12 @@ class DocTest:
             re_expected = re.compile(
                 '^' +
                 re.escape(self.expected)
-                .replace('\\?', '.')
-                .replace('\\*', '.*') +
+                # ... matches multiple lines
+                .replace('\\.\\.\\.', r'[\w\W]*')
+                # ? matches a single character except newlines
+                .replace('\\?', r'.')
+                # * matches all characters except newlines
+                .replace('\\*', r'.*') +
                 '$')
             testcase.assertRegex(actual, re_expected)
         else:
