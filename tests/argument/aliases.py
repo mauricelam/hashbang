@@ -28,6 +28,10 @@ from hashbang import command, Argument
 def main(*,
          flag1: Argument(aliases=('f', 'flagone')) = False,
          flag2: Argument(aliases='Ft') = True):
+    '''
+    Aliases are sequences, so a normal string will be split into characters
+    for each alias, while multi-character aliases should use tuples.
+    '''
     print('flag1={} flag2={}'.format(flag1, flag2))
 
 

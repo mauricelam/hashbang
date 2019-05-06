@@ -17,7 +17,7 @@ from pathlib import Path
 from ._utils import optionalarg, log
 
 
-class CommandParser(argparse.ArgumentParser):
+class _CommandParser(argparse.ArgumentParser):
 
     parse_known = False
 
@@ -29,12 +29,10 @@ class CommandParser(argparse.ArgumentParser):
 
 
 class CommandSpec:
-    def __init__(self, func, arguments=None, partial=False):
+    def __init__(self, func, partial=False):
         self.func = func
         self.signature = inspect.signature(func)
-        self.description, self.usage, \
-            self.param_docs = CommandSpec.parse_doc(func)
-        self.arguments = arguments or {}
+        self.description, self.usage = CommandSpec.parse_doc(func)
         self.partial = partial
 
     def add_arguments(self, parser):
@@ -61,8 +59,6 @@ class CommandSpec:
                 }
                 '''
                 argconfig = param.annotation
-                if not hasattr(argconfig, 'add_argument'):
-                    argconfig = self.arguments.get(argname)
 
                 if hasattr(argconfig, 'add_argument'):
                     argconfig.add_argument(parser, args=args, kwargs=kwargs)
@@ -122,7 +118,7 @@ class CommandSpec:
                     'Unsupported kind of argument ' + str(param.kind))
 
     def get_parser(self, prog=None):
-        parser = CommandParser(
+        parser = _CommandParser(
             prog=prog,
             description=self.description,
             usage=self.usage,
@@ -136,7 +132,7 @@ class CommandSpec:
         for argname, param in self.signature.parameters.items():
             if argname == 'self':
                 continue
-            name = argname.rstrip('_')
+            name = argname
             value = opts.get(name, None)
             if argname == '__rest__':
                 args.extend(remaining)
@@ -153,12 +149,11 @@ class CommandSpec:
     def parse_doc(func):
         doc = inspect.getdoc(func)
         if doc is None:
-            return (None, None, {})
+            return (None, None)
         description, usage, *_ = (
                 re.split('usage: ', doc, flags=re.IGNORECASE) + [None]
         )
-        # TODO: parse and provide parameter docs
-        return (description, usage, {})
+        return (description, usage)
 
 
 @optionalarg
@@ -170,7 +165,7 @@ def command(func, args=(), *, prog=None):
     def main(arg1, *, flag1=False):
         # Do stuff
     '''
-    func._command = CommandObj(func, args, prog=prog)
+    func._command = _CommandObj(func, args, prog=prog)
     return func
 
 
@@ -188,7 +183,7 @@ def _commanddelegator(func, args=(), *, prog=None):
     .execute() on another command, or raise NoMatchingDelegate exception. Any
     other side-effects are undesired.
     '''
-    func._command = DelegatingCommandObj(func, args, prog=prog)
+    func._command = _DelegatingCommandObj(func, args, prog=prog)
     return func
 
 
@@ -239,24 +234,20 @@ class Argument:
         # Do stuff
     '''
 
-    def __init__(self, name=None, *, choices=None, completer=None, aliases=()):
-        # Name is only necessary for the config type (i.e. as a parameter in
-        # @command)
-        self.name = name
+    def __init__(self, *, choices=None, completer=None, aliases=(), help=None):
         self.choices = choices
         self.completer = completer
         self.aliases = aliases
-
-    def apply(self, command):
-        command.arguments[self.name] = self
+        self.help = help
 
     def add_argument(self, parser, args, kwargs):
         if self.aliases:
             args += tuple(
                 ('-' if len(i) == 1 else '--') + i for i in self.aliases)
         if 'help' not in kwargs:
-            kwargs['help'] = ('<{}>'.format('|'.join(self.choices))
-                              if self.choices else None)
+            kwargs['help'] = self.help
+        if self.choices:
+            kwargs['choices'] = self.choices
         argument = parser.add_argument(*args, **kwargs)
         if argcomplete is not None:
             if self.completer is not None:
@@ -266,18 +257,10 @@ class Argument:
                         self.choices)
 
 
-class ArgumentDict(dict):
-
-    def __missing__(self, key):
-        self[key] = Argument(key)
-        return self[key]
-
-
-class CommandObj:
+class _CommandObj:
 
     def __init__(self, func, configs, prog=None):
         self.func = func
-        self.arguments = ArgumentDict()
         self.prog = prog
 
         self.commandspec = None
@@ -285,22 +268,21 @@ class CommandObj:
 
         self.unbound_func.execute = self.execute
         self.unbound_func.complete = self.complete
-        self.unbound_func.arguments = self.arguments
 
         for config in configs:
             config.apply(self)
 
     def execute(self, args=None):
-        if CommandObj.exec_mode == 'execute':
+        if _CommandObj.exec_mode == 'execute':
             return self.__execute(args)
-        elif CommandObj.exec_mode == 'complete':
+        elif _CommandObj.exec_mode == 'complete':
             # subcommand propagation doesn't work for completing partial
             # queries, but included here anyway for completeness
             return self.complete(args)
-        elif CommandObj.exec_mode == 'help':
+        elif _CommandObj.exec_mode == 'help':
             return self.help(args)
         else:
-            raise RuntimeError('Unknown mode {}'.format(CommandObj.exec_mode))
+            raise RuntimeError('Unknown mode {}'.format(_CommandObj.exec_mode))
 
     def __execute(self, args=None):
         try:
@@ -314,6 +296,8 @@ class CommandObj:
             sys.exit(0)
         except (subprocess.CalledProcessError, RuntimeError) as e:
             print('Error:', str(e), file=sys.stderr)
+        except NoMatchingDelegate as e:
+            print(str(e), file=sys.stderr)
         except KeyboardInterrupt as e:
             print('^C', file=sys.stderr)
         sys.exit(1)
@@ -329,7 +313,7 @@ class CommandObj:
         global _command_complete
         cword_prefix, debug = _command_complete
 
-        self.create_parser()
+        self.create_parser(args)
         finder = argcomplete.CompletionFinder(
             argument_parser=self.parser,
             always_complete_options=False)
@@ -374,15 +358,18 @@ class CommandObj:
                 cword_prefix=cword_prefix,
                 debug=debug)
 
-    def create_parser(self, partial=False):
-        self.commandspec = CommandSpec(
-                self.func,
-                arguments=self.arguments,
-                partial=partial)
+    def create_parser(self, args, partial=False):
+        if self.prog is None and args is not None:
+            # Try to create a sensible default for prog name
+            argv = sys.argv
+            argv[0] = Path(argv[0]).name
+            guess_prog = ' '.join(arg for arg in argv if arg not in args)
+            self.prog = guess_prog
+        self.commandspec = CommandSpec(self.func, partial=partial)
         self.parser = self.commandspec.get_parser(prog=self.prog)
 
     def execute_partial(self, args=None):
-        self.create_parser(partial=True)
+        self.create_parser(args, partial=True)
         parsed = argparse.Namespace()
         parsed, remaining = self.parser.parse_known_args(
                 args, namespace=parsed)
@@ -394,14 +381,15 @@ class CommandObj:
 
     def help(self, args):
         if self.parser is None:
-            self.create_parser(partial=True)
+            self.create_parser(args, partial=True)
         self.parser.print_help()
         self.parser.exit(100)
 
     def _make_help_action(self, args):
         class HelpAction(argparse.Action):
 
-            def __init__(_, option_strings,
+            def __init__(_,
+                         option_strings,
                          dest=argparse.SUPPRESS,
                          default=argparse.SUPPRESS,
                          help=None):
@@ -425,7 +413,7 @@ class CommandObj:
 
         # Defer CommandSpec initialization until command execution
         # (lazy loading!)
-        self.create_parser()
+        self.create_parser(args)
         self.parser.add_argument(
                 '-h', '--help',
                 action=self._make_help_action(args), default=argparse.SUPPRESS,
@@ -478,13 +466,13 @@ class CommandObj:
         return self.func(*func_args, **func_kwargs)
 
 
-CommandObj.exec_mode = 'execute'
+_CommandObj.exec_mode = 'execute'
 
 
-class DelegatingCommandObj(CommandObj):
+class _DelegatingCommandObj(_CommandObj):
 
     def help(self, args):
-        CommandObj.exec_mode = 'help'
+        _CommandObj.exec_mode = 'help'
         try:
             return super().execute_partial(args)
         except NoMatchingDelegate as e:
@@ -492,7 +480,7 @@ class DelegatingCommandObj(CommandObj):
         self.parser.exit(100)
 
     def complete(self, args):
-        CommandObj.exec_mode = 'complete'
+        _CommandObj.exec_mode = 'complete'
         try:
             return super().execute_partial(args)
         except NoMatchingDelegate as e:
@@ -501,8 +489,8 @@ class DelegatingCommandObj(CommandObj):
 
 class NoMatchingDelegate(Exception):
 
-    def __str__(self):
-        return 'No matching delegate'
+    def __init__(self, msg='No matching delegate'):
+        super().__init__(msg)
 
 
 def MasterCommand(**kwargs):
