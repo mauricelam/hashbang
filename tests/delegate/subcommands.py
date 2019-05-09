@@ -12,16 +12,16 @@ $ subcommands.py --help  # returncode=100
 >   {pairs,kwargs,auto}
 
 $ subcommands.py auto --help  # returncode=100
-> usage: subcommands.py auto [{one,two,three,four}]
+> usage: subcommands.py auto [{one,two,on1,tw2}]
 >
 > positional arguments:
->   {one,two,three,four}
+>   {one,two,on1,tw2}
 
 $ subcommands.py pairs --help  # returncode=100
-> usage: subcommands.py pairs [{one,two,three,four}]
+> usage: subcommands.py pairs [{one,two,on1,tw2}]
 >
 > positional arguments:
->   {one,two,three,four}
+>   {one,two,on1,tw2}
 
 $ subcommands.py kwargs --help  # returncode=100 glob=True
 > usage: subcommands.py kwargs [{*}]
@@ -42,7 +42,10 @@ $ subcommands.py au<TAB>
 auto 
 
 $ subcommands.py auto <TAB>
-one\x0btwo\x0bthree\x0bfour
+one\x0btwo\x0bon1\x0btw2
+
+$ subcommands.py auto o<TAB>
+one\x0bon1
 '''
 
 from hashbang import command, subcommands, Argument, NoMatchingDelegate
@@ -63,17 +66,20 @@ def subcommand2(arg, *remaining, flag2=False):
             .format(arg, remaining, flag2))
 
 
+# Using pairs preserves the insertion order
 pairs = subcommands(
         ('one', subcommand1),
         ('two', subcommand2),
-        ('three', subcommand2),
-        ('four', subcommand2))
+        ('on1', subcommand1),
+        ('tw2', subcommand2))
 
+# Using keyword arguments preserve insertion order in python 3.6 or above,
+# and sorts by key on lower versions
 kwargs = subcommands(
         one=subcommand1,
         two=subcommand2,
-        three=subcommand2,
-        four=subcommand2)
+        on1=subcommand1,
+        tw2=subcommand2)
 
 
 @command.delegator
