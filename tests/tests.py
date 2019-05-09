@@ -17,9 +17,9 @@ class TestCase:
 
 TEST_DIR = Path(__file__).parent
 TEST_GLOBS = [
-    # (TEST_DIR/'basic').glob('*.py'),
+    (TEST_DIR/'basic').glob('*.py'),
     (TEST_DIR/'argument').glob('*.py'),
-    # (TEST_DIR/'delegate').glob('*.py'),
+    (TEST_DIR/'delegate').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
 

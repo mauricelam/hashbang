@@ -16,9 +16,6 @@ from hashbang import command
 
 @command
 def main(*, flag1=False, flag2=True):
-    '''
-    Trailing underscores should be skipped in flag names
-    '''
     print('flag1={} flag2={}'.format(flag1, flag2))
 
 

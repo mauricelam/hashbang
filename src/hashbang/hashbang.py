@@ -23,9 +23,7 @@ class _CommandParser(argparse.ArgumentParser):
         self.arguments = {}
 
     def add_argument(self, *args, **kwargs):
-        retval = super().add_argument(*args, **kwargs)
-
-        return retval
+        return super().add_argument(*args, **kwargs)
 
     def parse(self, args=None, namespace=None):
         if self.parse_known:
@@ -162,7 +160,7 @@ class Argument:
                     default=param.default,
                     help=argparse.SUPPRESS)
             else:
-                # Capture any other keyword arguments: def run(*, **kwargs)
+                # Capture any other keyword arguments: def run(*, arg=None)
                 # e.g. prog --arg1 val1 --arg2 val2
                 argument = parser.add_argument(
                     *names,
@@ -249,7 +247,7 @@ class _CommandObj:
         elif mode == 'help':
             return self.help(args)
         elif mode == 'complete':
-            return _completion.execute_complete(self, args)
+            return self.complete(args)
         else:
             raise RuntimeError('Unknown execution mode {}'.format(mode))
 
@@ -313,6 +311,9 @@ class _CommandObj:
         self.parser.print_help()
         self.parser.exit(100)
 
+    def complete(self, args):
+        return _completion.execute_complete(self, args)
+
     def _make_help_action(self, args):
         class HelpAction(argparse.Action):
 
@@ -358,6 +359,9 @@ _CommandObj.exec_mode = 'execute'
 
 class _DelegatingCommandObj(_CommandObj):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def help(self, args):
         _CommandObj.exec_mode = 'help'
         try:
@@ -396,4 +400,4 @@ def subcommands(*args, **kwargs):
             raise NoMatchingDelegate()
         return cmd.execute(__rest__)
 
-    return _run.execute()
+    return _run

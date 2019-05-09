@@ -7,12 +7,18 @@ import argparse
 import os
 import sys
 import traceback
+from inspect import Parameter
 
 
 def add_argument(argument, argparse_argument):
     if argcomplete is not None:
         if argument.completer is not None:
             argparse_argument.completer = argument.completer
+        elif argument.choices is not None:
+            # Cannot use argparse's built in choices, since we may be parsing
+            # partial arguments in completion mode
+            argparse_argument.completer = (
+                    argcomplete.completers.ChoicesCompleter(argument.choices))
 
 
 def execute_complete(commandobj, args):
@@ -53,7 +59,7 @@ def execute_complete(commandobj, args):
     results = None
     completer = getattr(commandobj.func, 'completer', None)
     if completer:
-        func_args, func_kwargs = commandobj.commandspec.get_args(
+        func_args, func_kwargs = commandobj.get_args(
                 vars(parsed_args), remaining)
         func_args = [arg if arg is not Parameter.empty else None
                      for arg in func_args]
@@ -89,8 +95,7 @@ def modify_parser(commandobj, parser, args):
                     global _command_complete
                     _command_complete = (cword_prefix, (lambda *_: None))
 
-                    choices = execute_complete(
-                            commandobj,
+                    choices = commandobj.complete(
                             args if args is not None else comp_words[1:])
                     completions = list(completion_filter(
                             choices, cword_prefix))
@@ -106,7 +111,9 @@ def modify_parser(commandobj, parser, args):
 
         CompletionFinder(parser)(
                 parser,
-                output_stream=sys.stdout.buffer,
+                output_stream=(sys.stdout.buffer
+                               if os.getenv('_COMPLETE_TO_STDOUT') == '1'
+                               else None),
                 exclude=['--help', '-h'],
                 always_complete_options=False)
 
@@ -123,14 +130,13 @@ def substring_filter(choices, cword):
 
 def fuzzy_path_filter(choices, cword):
     def path_match(subpath, fullpath):
-        fullpath_parts = fullpath.split('/')
+        fullpath_parts = fullpath.split(os.sep)
         return all(
             any(
                 fullpath_part.lower().startswith(subpath_part.lower())
                 for fullpath_part in fullpath_parts)
-            for subpath_part in subpath.split('/')
+            for subpath_part in subpath.split(os.sep)
         )
-    # TODO: Support Windows
     return [choice for choice in choices if path_match(cword, choice)]
 
 

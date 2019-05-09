@@ -1,18 +1,52 @@
 #!/usr/bin/env python3
 
 '''
-$ subcommands.py  # returncode=2 stderr=True glob=True
-usage: subcommands.py [-h] {*}
+$ subcommands.py  # returncode=2 stderr=True
+usage: subcommands.py [-h] {pairs,kwargs,auto}
 subcommands.py: error: the following arguments are required: subcommand
 
-$ subcommands.py one 123 456 789
+$ subcommands.py --help  # returncode=100
+> usage: subcommands.py [{pairs,kwargs,auto}]
+>
+> positional arguments:
+>   {pairs,kwargs,auto}
+
+$ subcommands.py auto --help  # returncode=100
+> usage: subcommands.py auto [{one,two,three,four}]
+>
+> positional arguments:
+>   {one,two,three,four}
+
+$ subcommands.py pairs --help  # returncode=100
+> usage: subcommands.py pairs [{one,two,three,four}]
+>
+> positional arguments:
+>   {one,two,three,four}
+
+$ subcommands.py kwargs --help  # returncode=100 glob=True
+> usage: subcommands.py kwargs [{*}]
+>
+> positional arguments:
+>   {*}
+
+$ subcommands.py auto one 123 456 789
 subcommand1 arg=123 remaining=('456', '789') flag1=False
 
-$ subcommands.py two 345 678 9
+$ subcommands.py auto two 345 678 9
 subcommand2 arg=345 remaining=('678', '9') flag2=False
+
+$ subcommands.py <TAB>
+pairs\x0bkwargs\x0bauto
+
+$ subcommands.py au<TAB>
+auto 
+
+$ subcommands.py auto <TAB>
+one\x0btwo\x0bthree\x0bfour
 '''
 
-from hashbang import command, subcommands
+from hashbang import command, subcommands, Argument, NoMatchingDelegate
+import sys
 
 
 @command
@@ -29,11 +63,35 @@ def subcommand2(arg, *remaining, flag2=False):
             .format(arg, remaining, flag2))
 
 
-if __name__ == '__main__':
-    # kwargs maintains declaration order on versions >= 3.6, and sorted by key
-    # on lower versions
-    subcommands(
+pairs = subcommands(
+        ('one', subcommand1),
+        ('two', subcommand2),
+        ('three', subcommand2),
+        ('four', subcommand2))
+
+kwargs = subcommands(
         one=subcommand1,
         two=subcommand2,
         three=subcommand2,
         four=subcommand2)
+
+
+@command.delegator
+def main(
+        subcommand: Argument(choices=('pairs', 'kwargs', 'auto')),
+        *__rest__):
+    if subcommand == 'auto':
+        if sys.version_info >= (3, 6):
+            return kwargs.execute(__rest__)
+        else:
+            return pairs.execute(__rest__)
+    elif subcommand == 'pairs':
+        return pairs.execute(__rest__)
+    elif subcommand == 'kwargs':
+        return kwargs.execute(__rest__)
+    else:
+        raise NoMatchingDelegate()
+
+
+if __name__ == '__main__':
+    main.execute()
