@@ -85,16 +85,16 @@ kwargs = subcommands(
 @command.delegator
 def main(
         subcommand: Argument(choices=('pairs', 'kwargs', 'auto')),
-        *__rest__):
+        *_REMAINDER_):
     if subcommand == 'auto':
         if sys.version_info >= (3, 6):
-            return kwargs.execute(__rest__)
+            return kwargs.execute(_REMAINDER_)
         else:
-            return pairs.execute(__rest__)
+            return pairs.execute(_REMAINDER_)
     elif subcommand == 'pairs':
-        return pairs.execute(__rest__)
+        return pairs.execute(_REMAINDER_)
     elif subcommand == 'kwargs':
-        return kwargs.execute(__rest__)
+        return kwargs.execute(_REMAINDER_)
     else:
         raise NoMatchingDelegate()
 

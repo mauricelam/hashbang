@@ -85,16 +85,25 @@ class Argument:
             completer=None,
             aliases=(),
             help=None,
-            type=None):
+            type=None,
+            remainder=False):
         self.choices = choices
         self.completer = completer
         self.aliases = aliases
         self.help = help
         self.type = type
+        self.remainder = remainder
 
     def add_argument(self, parser, argname, param, *, partial=False):
         argument = None
         name = argname.rstrip('_')
+
+        # Validation
+        if self.remainder and param.kind is not Parameter.VAR_POSITIONAL:
+            raise RuntimeError('Remainder arg "{}" must be variadic (*arg)'
+                               .format(argname))
+
+        # Add arguments
         if (param.kind is Parameter.POSITIONAL_ONLY or
                 param.kind is Parameter.POSITIONAL_OR_KEYWORD):
             if param.default is Parameter.empty:
@@ -123,9 +132,11 @@ class Argument:
                         help=self.help,
                         type=self.type)
         elif param.kind is Parameter.VAR_POSITIONAL:
-            if argname == '__rest__':
+            if argname == '_REMAINDER_':
+                self.remainder = True
+            if self.remainder:
                 # Special argument that will capture any remaining entries
-                # in argv e.g. def run(*__rest__)
+                # in argv e.g. def run(*_REMAINDER_)
                 parser.parse_known = True
             else:
                 # Repeated argument: def run(*paths)
@@ -143,6 +154,11 @@ class Argument:
                     ('-' if len(i) == 1 else '--') + i for i in self.aliases]
                 nonames += ['--no' + i for i in self.aliases]
             if type(param.default) is bool:
+                if self.choices is not None:
+                    raise RuntimeError(
+                            'Choices cannot be specified for boolean flag "{}"'
+                            .format(argname))
+
                 # Flag to store true or false:
                 #   def run(*, wipe=True, verbose=False)
                 # Generates --wipe and --nowipe
@@ -214,10 +230,10 @@ class _CommandObj:
         '''
         args = []
         kwargs = {}
-        for argname, param in self.signature.parameters.items():
+        for argname, param, argument in self.arguments:
             name = argname
             value = opts.get(name, None)
-            if argname == '__rest__':
+            if argument.remainder:
                 args.extend(remaining)
             elif (param.kind is Parameter.POSITIONAL_ONLY or
                     param.kind is Parameter.POSITIONAL_OR_KEYWORD):
@@ -278,7 +294,7 @@ class _CommandObj:
             self.prog = guess_prog
         description, usage = _CommandObj.parse_doc(self.func)
 
-        arguments = [
+        self.arguments = [
                 (
                     argname,
                     param,
@@ -294,7 +310,7 @@ class _CommandObj:
                 partial,
                 description,
                 usage,
-                arguments)
+                self.arguments)
         return self.parser
 
     def execute_partial(self, args=None):
@@ -394,10 +410,10 @@ def subcommands(*args, **kwargs):
     @command.delegator
     def _run(
             subcommand: Argument(choices=cmds.keys()),
-            *__rest__):
+            *_REMAINDER_):
         cmd = cmds.get(subcommand, None)
         if cmd is None:
             raise NoMatchingDelegate()
-        return cmd.execute(__rest__)
+        return cmd.execute(_REMAINDER_)
 
     return _run

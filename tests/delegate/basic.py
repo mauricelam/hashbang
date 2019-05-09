@@ -60,14 +60,14 @@ def subcommand2(arg, *remaining, flag2=False):
 @command.delegator
 def main(
         subcommand: Argument(choices=('subcommand1', 'subcommand2')),
-        *__rest__,
+        *_REMAINDER_,
         verbose=False):
     if verbose:
         print('Executing {}...'.format(subcommand))
     if subcommand == 'subcommand1':
-        subcommand1.execute(__rest__)
+        subcommand1.execute(_REMAINDER_)
     elif subcommand == 'subcommand2':
-        subcommand2.execute(__rest__)
+        subcommand2.execute(_REMAINDER_)
     else:
         raise NoMatchingDelegate()
 
