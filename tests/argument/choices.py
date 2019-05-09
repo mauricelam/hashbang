@@ -7,6 +7,12 @@ $ choices.py --help  # returncode=100
 > optional arguments:
 >   --arg {one,two,three}
 >   -h, --help            show this help message and exit
+
+$ choices.py --<TAB>
+--arg 
+
+$ choices.py --arg <TAB>
+one\x0btwo\x0bthree
 '''
 
 from hashbang import command, Argument

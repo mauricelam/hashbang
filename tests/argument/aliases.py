@@ -10,7 +10,14 @@ flag1=False flag2=True
 $ aliases.py -f --noflag2
 flag1=True flag2=False
 
-$ aliases.py -t
+$ aliases.py -t --nof
+flag1=False flag2=True
+
+# Last flag wins, so --noF overrides -t
+$ aliases.py -t --noF
+flag1=False flag2=False
+
+$ aliases.py --noF -t
 flag1=False flag2=True
 
 $ aliases.py --flagone

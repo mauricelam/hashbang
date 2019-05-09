@@ -5,6 +5,7 @@ import subprocess
 from subprocess import CalledProcessError
 import sys
 import re
+import textwrap
 from pathlib import Path
 from importlib.machinery import SourceFileLoader
 
@@ -16,9 +17,9 @@ class TestCase:
 
 TEST_DIR = Path(__file__).parent
 TEST_GLOBS = [
-    (TEST_DIR/'basic').glob('*.py'),
+    # (TEST_DIR/'basic').glob('*.py'),
     (TEST_DIR/'argument').glob('*.py'),
-    (TEST_DIR/'delegate').glob('*.py'),
+    # (TEST_DIR/'delegate').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
 
@@ -38,7 +39,74 @@ class Test(unittest.TestCase):
                 shell=True,
                 universal_newlines=True)
 
-    def getdoctest(self, file):
+    def _test_completion(self, command, *, cwd):
+        cmd = sys.executable + ' ' + command.strip().split(' ')[0]
+        return subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env={
+                    'PYTHONPATH': str(Path.cwd()/'src'),
+                    '_ARC_DEBUG': '1',
+                    '_ARGCOMPLETE': '1',
+                    '_COMPLETE_TO_STDOUT': '1',
+                    'COMP_LINE': command,
+                    'COMP_POINT': str(len(command)),
+                },
+                cwd=cwd,
+                shell=True,
+                universal_newlines=True)
+
+    def test(self):
+        for t in TEST_FILES:
+            with t.open('r') as f:
+                for doctest in DocTest.fromfile(f):
+                    with self.subTest(
+                                testfile=doctest.testfile,
+                                command=doctest.command):
+                        print(doctest.describe())
+                        if doctest.get_config('completion', False):
+                            p = self._test_completion(
+                                    doctest.command, cwd=str(t.parent))
+                        else:
+                            p = self._Popen(doctest.command, cwd=str(t.parent))
+                        stdout, stderr = p.communicate()
+                        self.assertEqual(
+                            p.returncode,
+                            doctest.get_config('returncode', 0),
+                            msg=stderr)
+                        print('stdout', stdout)
+                        doctest.make_assertion(self, stdout, stderr)
+
+    def test_decorator(self):
+        sys.path.append('src')
+        noarg = SourceFileLoader(
+            'module.name',
+            str(TEST_DIR/'basic'/'no_arguments.py')).load_module()
+        self.assertEqual(noarg.main.__name__, 'main')
+        self.assertEqual(noarg.main.__doc__, 'Function with no arguments')
+
+
+class DocTest:
+    '''
+    Representation of a test in the module documentation of the file. Tests
+    must be defined in a docstring before any imports.
+
+    Each test follows this format:
+    $ <command to execute>  # config=value config2=value
+    Output in stdout or stderr
+
+    The first line prefixed by '$ ' is executed in a subprocess, with possible
+    configs listed on the same line after a '#' in key=value format.
+
+    Subsequent lines are the expected output in stdout or stderr, until a blank
+    line is reached. If a blank line needs to be matched, '> ' can be added to
+    the entire block to be matched, with the expected blank lines replaced by
+    the character '>'.
+    '''
+
+    @staticmethod
+    def fromfile(file):
         tree = ast.parse(file.read())
         testdoc = ast.get_docstring(tree)
         matches = None
@@ -55,72 +123,71 @@ class Test(unittest.TestCase):
             # Remove prefix '> ', which is used to test outputs with blank
             # lines
             expected = re.sub(r'^>( |$)', '', expected, flags=re.MULTILINE)
-            command, expectations, *_ = command.split('#', 1) + [None]
-            expectations = (dict(e.split('=', 1)
-                                 for e in expectations.split(' ') if e)
-                            if expectations else {})
-            yield DocTest(file.name, command, expected, expectations)
+            command, configs, *_ = command.split('#', 1) + [None]
+            configs = (dict(e.split('=', 1) for e in configs.split(' ') if e)
+                       if configs else {})
 
-    def test(self):
-        for t in TEST_FILES:
-            with t.open('r') as f:
-                for doctest in self.getdoctest(f):
-                    with self.subTest(
-                                      testfile=doctest.testfile,
-                                      command=doctest.command):
-                        print(doctest.describe())
-                        p = self._Popen(doctest.command, cwd=str(t.parent))
-                        stdout, stderr = p.communicate()
-                        self.assertEqual(
-                            p.returncode,
-                            doctest.get_expectation('returncode', 0),
-                            msg=stderr)
-                        doctest.make_assertion(self, stdout, stderr)
+            if '<TAB>' in command:
+                command = command.strip()[:-5]
+                configs['completion'] = True
+                expected = expected.rstrip('\n')
 
-    def test_decorator(self):
-        sys.path.append('src')
-        noarg = SourceFileLoader(
-            'module.name',
-            str(TEST_DIR/'basic'/'no_arguments.py')).load_module()
-        self.assertEqual(noarg.main.__name__, 'main')
-        self.assertEqual(noarg.main.__doc__, 'Function with no arguments')
+            yield DocTest(file.name, command, expected, configs)
 
-
-class DocTest:
-    def __init__(self, testfile, command, expected, expectations):
+    def __init__(self, testfile, command, expected, configs):
         self.testfile = testfile
         self.command = command
         self.expected = expected
-        self.expectations = expectations
+        self.configs = configs
 
-    def get_expectation(self, key, default):
-        return type(default)(self.expectations.get(key, default))
+    def get_config(self, key, default):
+        '''
+        Configs are defined in key=value format, in the prompt line, after
+        the comment marker '#'
+
+        Supported configs are:
+        1. returncode - the return code of the subprocess call. The default
+                        expected is 0.
+        2. stderr - whether to match the output against stderr instead of
+                    stdout. The default is False.
+        3. glob - whether to allow wildcard matches. If this is true, '?' will
+                  match any single character, '*' will match any number of
+                  characters except newlines, and '...' will match any number
+                  of characters including newlines.
+        '''
+        return type(default)(self.configs.get(key, default))
 
     def make_assertion(self, testcase, stdout, stderr):
-        actual = stderr if self.get_expectation('stderr', False) else stdout
+        actual = stderr if self.get_config('stderr', False) else stdout
 
-        if self.get_expectation('glob', False):
+        if self.get_config('glob', False):
             re_expected = re.compile(
-                '^' +
-                re.escape(self.expected)
-                # ... matches multiple lines
-                .replace('\\.\\.\\.', r'[\w\W]*')
-                # ? matches a single character except newlines
-                .replace('\\?', r'.')
-                # * matches all characters except newlines
-                .replace('\\*', r'.*') +
-                '$')
-            testcase.assertRegex(actual, re_expected)
+                '^{}$'.format(
+                    re.escape(self.expected)
+                    # ... matches multiple lines
+                    .replace('\\.\\.\\.', r'[\w\W]*')
+                    # ? matches a single character except newlines
+                    .replace('\\?', r'.')
+                    # * matches all characters except newlines
+                    .replace('\\*', r'.*')))
+            testcase.assertRegex(
+                    actual,
+                    re_expected,
+                    msg='Glob match failed. STDERR:\n{}'.format(stderr))
         else:
-            testcase.assertEqual(actual, self.expected)
+            testcase.assertEqual(
+                    actual,
+                    self.expected,
+                    msg='String match failed. STDERR:\n{}'.format(stderr))
 
     def describe(self):
-        return '''Executing {testfile}
+        return textwrap.dedent('''
+        Executing {testfile}
         $ {command}
         {expected}
-        '''.format(testfile=self.testfile,
-                   command=self.command,
-                   expected=self.expected)
+        ''').format(testfile=self.testfile,
+                    command=self.command,
+                    expected=self.expected)
 
 
 if __name__ == '__main__':

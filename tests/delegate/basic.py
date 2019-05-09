@@ -17,7 +17,8 @@ subcommand2 arg=345 remaining=('678', '9') flag2=False
 
 $ basic.py nonexistent  # returncode=2 stderr=True
 usage: basic.py [--verbose] [-h] {subcommand1,subcommand2}
-basic.py: error: argument subcommand: invalid choice: 'nonexistent' (choose from 'subcommand1', 'subcommand2')
+basic.py: error: argument subcommand: invalid choice: 'nonexistent' (choose \
+from 'subcommand1', 'subcommand2')
 
 $ basic.py --help  # returncode=100
 > usage: basic.py [--verbose] [{subcommand1,subcommand2}]
