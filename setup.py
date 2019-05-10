@@ -6,14 +6,14 @@ README = DIR/'README.md'
 
 setuptools.setup(
     name="hashbang",
-    version="0.0.1",
+    version="0.0.2",
     author="Maurice Lam",
     author_email="mauriceprograms@gmail.com",
     description="Create command line arguments with just an annotation",
     long_description=README.read_text(),
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
-    packages=['hashbang'],
+    packages=["src/hashbang"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
