@@ -8,7 +8,7 @@ import re
 import textwrap
 from pathlib import Path
 from importlib.machinery import SourceFileLoader
-import importlib
+from importlib import util as importutil
 
 
 class TestCase:
@@ -59,7 +59,7 @@ class Test(unittest.TestCase):
                 universal_newlines=True)
 
     def is_argcomplete_available(self):
-        return importlib.util.find_spec('argcomplete') is not None
+        return importutil.find_spec('argcomplete') is not None
 
     def test(self):
         for t in TEST_FILES:

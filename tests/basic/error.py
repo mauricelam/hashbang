@@ -5,7 +5,7 @@ $ error.py  # returncode=1 stderr=True
 Error: runtime error
 
 $ error.py --error=subprocess # returncode=1 stderr=True
-Error: Command 'exit 132' returned non-zero exit status 132
+Error: Command 'exit 132' returned non-zero exit status 132.
 
 $ error.py --error=custom. # returncode=1 stderr=True glob=True
 > Traceback (most recent call last):
