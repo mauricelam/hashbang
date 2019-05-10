@@ -8,6 +8,7 @@ import re
 import textwrap
 from pathlib import Path
 from importlib.machinery import SourceFileLoader
+import importlib
 
 
 class TestCase:
@@ -57,10 +58,17 @@ class Test(unittest.TestCase):
                 shell=True,
                 universal_newlines=True)
 
+    def is_argcomplete_available(self):
+        return importlib.util.find_spec('argcomplete') is not None
+
     def test(self):
         for t in TEST_FILES:
             with t.open('r') as f:
                 for doctest in DocTest.fromfile(f):
+                    if doctest.get_config('completion', False):
+                        if not self.is_argcomplete_available():
+                            continue
+
                     with self.subTest(
                                 testfile=doctest.testfile,
                                 command=doctest.command):
