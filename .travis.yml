@@ -9,7 +9,7 @@ matrix:
       - "3.6"
       - "3.7"
     script:
-      - tests/tests.py
+      - python tests/tests.py
   - language: python
     python:
       - "2.7"
