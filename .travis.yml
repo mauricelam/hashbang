@@ -6,8 +6,6 @@ python:
   - "3.7"
 script:
   - python tests/tests.py
-matrix:
-  include:
-  - install:
-  - install:
-      - pip install argcomplete
+install:
+  - :
+  - pip install argcomplete
