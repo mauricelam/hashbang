@@ -3,6 +3,8 @@ from pathlib import Path
 
 DIR = Path(__file__).parent
 README = DIR/'README.md'
+with README.open('r') as f:
+    long_description = f.read()
 
 setuptools.setup(
     name="hashbang",
@@ -10,7 +12,7 @@ setuptools.setup(
     author="Maurice Lam",
     author_email="mauriceprograms@gmail.com",
     description="Create command line arguments with just an annotation",
-    long_description=README.read_text(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
     packages=["src/hashbang"],
