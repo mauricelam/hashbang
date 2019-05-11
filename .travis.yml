@@ -1,8 +1,6 @@
 dist: xenial
 language: python
 python:
-  - "3.2"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
@@ -19,5 +17,11 @@ matrix:
   include:
     - python: '3.2'
       dist: trusty
+      env:
+        - ARGCOMPLETE=0
+        - ARGCOMPLETE=1
     - python: '3.3'
       dist: trusy
+      env:
+        - ARGCOMPLETE=0
+        - ARGCOMPLETE=1
