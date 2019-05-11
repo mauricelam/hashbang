@@ -8,7 +8,7 @@ python:
   - "3.6"
   - "3.7"
 script:
-  - python tests/tests.py
+  - python setup.py test
 env:
   - ARGCOMPLETE=0
   - ARGCOMPLETE=1
