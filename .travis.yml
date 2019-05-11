@@ -10,4 +10,4 @@ env:
   - ARGCOMPLETE=0
   - ARGCOMPLETE=1
 install:
-  - [ "$ARGCOMPLETE" -eq "1" ] && pip install argcomplete
+  - pip install argcomplete
