@@ -1,6 +1,8 @@
 dist: xenial
 language: python
 python:
+  - "3.2"
+  - "3.3"
   - "3.4"
   - "3.5"
   - "3.6"
@@ -10,4 +12,6 @@ script:
 env:
   - ARGCOMPLETE=0
   - ARGCOMPLETE=1
-install: "[ \"$ARGCOMPLETE\" -eq 1 ] && pip install argcomplete || :"
+install:
+  - pip install -r requirements.txt
+  - "[ \"$ARGCOMPLETE\" -eq 1 ] && pip install argcomplete || :"

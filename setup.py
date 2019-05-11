@@ -20,7 +20,7 @@ setuptools.setup(
     extras_require={
         "completion": ["argcomplete"]
     },
-    python_requires='~=3.3',
+    python_requires='~=3.2',
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",

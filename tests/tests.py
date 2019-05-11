@@ -67,6 +67,8 @@ class Test(unittest.TestCase):
                 for doctest in DocTest.fromfile(f):
                     if doctest.get_config('completion', False):
                         if not self.is_argcomplete_available():
+                            print('argcomplete not installed. '
+                                  'Skipping completion test', file=sys.stderr)
                             continue
 
                     with self.subTest(
