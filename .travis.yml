@@ -24,6 +24,6 @@ matrix:
     - python: '3.3'
       dist: trusy
       env: ARGCOMPLETE=0
-      - python: '3.3'
+    - python: '3.3'
       dist: trusy
       env: ARGCOMPLETE=1
