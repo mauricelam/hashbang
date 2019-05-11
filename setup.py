@@ -14,6 +14,13 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
     packages=["src/hashbang"],
+    install_requires=[
+        'pathlib;python_version<"3.4"',
+    ],
+    extras_require={
+        "completion": ["argcomplete"]
+    },
+    python_requires='~=3.3',
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
