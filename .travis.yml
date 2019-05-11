@@ -1,3 +1,4 @@
+dist: xenial
 language: python
 python:
   - "3.4"
@@ -9,5 +10,9 @@ script:
 env:
   - ARGCOMPLETE=0
   - ARGCOMPLETE=1
-install:
-  - pip install argcomplete
+matrix:
+  include:
+    - install:
+      - pip install argcomplete
+    - install:
+      - pip
