@@ -1,9 +1,9 @@
 import setuptools
-from pathlib import Path
+import os
 
-DIR = Path(__file__).parent
-README = DIR/'README.md'
-with README.open('r') as f:
+DIR = os.path.dirname(__file__)
+README = os.path.join(DIR, 'README.md')
+with open(README, 'r') as f:
     long_description = f.read()
 
 setuptools.setup(
