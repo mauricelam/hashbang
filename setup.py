@@ -1,9 +1,9 @@
 import setuptools
-import os
+from pathlib import Path
 
-DIR = os.path.dirname(__file__)
-README = os.path.join(DIR, 'README.md')
-with open(README, 'r') as f:
+DIR = Path(__file__).parent
+README = DIR/'README.md'
+with README.open('r') as f:
     long_description = f.read()
 
 setuptools.setup(
@@ -23,7 +23,7 @@ setuptools.setup(
     extras_require={
         "completion": ["argcomplete"]
     },
-    python_requires='~=3.2',
+    python_requires='~=3.4',
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
