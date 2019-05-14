@@ -24,7 +24,7 @@ TEST_GLOBS = [
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
 
-DOC_MATCH = r'^\$(.*[\w\W]*?)(?:^$|\Z)'
+DOC_MATCH = r'^\$ ?(.*[\w\W]*?)(?:^$|\Z)'
 SET_MATCH = r'\{\{(.*)\}\}'
 
 
@@ -35,7 +35,7 @@ class Test(unittest.TestCase):
                 sys.executable + ' ' + command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env={'PYTHONPATH': str(Path.cwd()/'src')},
+                env={'PYTHONPATH': str(Path.cwd())},
                 cwd=cwd,
                 shell=True,
                 universal_newlines=True)
@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    'PYTHONPATH': str(Path.cwd()/'src'),
+                    'PYTHONPATH': str(Path.cwd()),
                     '_ARC_DEBUG': '1',
                     '_ARGCOMPLETE': '1',
                     '_COMPLETE_TO_STDOUT': '1',
@@ -191,13 +191,12 @@ class DocTest:
                     msg='String match failed. STDERR:\n{}'.format(stderr))
 
     def describe(self):
-        return textwrap.dedent('''
-        Executing {testfile}
-        $ {command}
-        {expected}
-        ''').format(testfile=self.testfile,
-                    command=self.command,
-                    expected=self.expected)
+        return textwrap.dedent(
+                'Executing {testfile}\n'
+                '$ {command}\n'
+                '{expected}').format(testfile=self.testfile,
+                                     command=self.command,
+                                     expected=self.expected)
 
 
 if __name__ == '__main__':

@@ -8,14 +8,14 @@ with open(README, 'r') as f:
 
 setuptools.setup(
     name="hashbang",
-    version="0.0.2",
+    version="0.0.4",
     author="Maurice Lam",
     author_email="mauriceprograms@gmail.com",
     description="Create command line arguments with just an annotation",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
-    packages=["src/hashbang"],
+    packages=["hashbang"],
     test_suite="tests/hashbang_test.py",
     install_requires=[
         'pathlib;python_version<"3.4"',
