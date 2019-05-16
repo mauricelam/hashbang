@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
 <details><summary>result</summary>
 
-```sh
+```
 $ pwd.py
 /home/mauricelam/code/hashbang
 ```
@@ -65,7 +65,7 @@ The additional value you get from using hashbang in this simple case is the help
 
 <details><summary>result</summary>
 
-```sh
+```
 $ pwd.py --help
 usage: pwd.py [-h]
 
@@ -85,7 +85,7 @@ def ls(dir=None):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ ls.py
 bin
 etc
@@ -94,7 +94,7 @@ usr
 var
 ```
 
-```sh
+```
 $ ls.py bin
 cp
 df
@@ -116,7 +116,7 @@ def cp(src, dest):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ cp.py textfile.txt copy_of_textfile.txt
 ```
 
@@ -132,7 +132,7 @@ def echo(*message):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ echo.py Hello world
 Hello world
 ```
@@ -152,7 +152,7 @@ def pwd(*, resolve_symlink=False):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ pwd.py
 /var
 $ pwd.py --resolve_symlink
@@ -171,13 +171,13 @@ def echo(*message, trailing_newline=True):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ echo.py Hello world && echo '.'
 Hello world
 .
 ```
 
-```sh
+```
 $ echo.py --notrailing_newline Hello world && echo '.'
 Hello world.
 ```
@@ -199,7 +199,7 @@ def cut(*, fields=None, chars=None, delimeter='\t'):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ echo -e 'a,b,c,d\ne,f,g,h' | cut.py --fields '1,2,3' --delimeter=','
 bc
 fg
@@ -252,19 +252,19 @@ if __name__ == '__main__':
 
 <details><summary>result</summary>
   
-```sh
+```
 $ git.py branch
 master
 ```
 
-```sh
+```
 $ git.py branch hello
 $ git.py branch
 master
 hello
 ```
 
-```sh
+```
 $ git.py log
 commit 602cbd7c68b0980ab1dbe0d3b9e83b69c04d9698 (HEAD -> master, origin/master)
 Merge: 333d617 34c0a0f
@@ -310,24 +310,24 @@ def who(am=None, i=None, *_REMAINDER_):
 
 <details><summary>result</summary>
 
-```sh
+```
 $ who.py
 mauricelam console  May  8 00:02 
 mauricelam ttys000  May  8 00:03 
 mauricelam ttys001  May  8 00:04
 ```
 
-```sh
+```
 $ who.py am i 
 mauricelam ttys001  May  8 00:04
 ```
 
-```sh
+```
 $ who.py --print_dead_process
 mauricelam ttys002  May  8 00:40 	term=0 exit=0
 ```
 
-```sh
+```
 $ who.py are you
 Error: No matching delegate
 ```
@@ -338,7 +338,7 @@ While using the regular `@command` decorator will still work in this situation, 
 
 <details><summary>✓ Using <code>@command.delegator</code></summary>
 
-```sh
+```
 $ who.py --help
 usage: who.py [--print_dead_process] [--print_runlevel]
 
@@ -347,7 +347,7 @@ optional arguments:
   --print_runlevel
 ```
 
-```sh
+```
 $ who.py am i --help
 usage: who.py am i
 
@@ -358,7 +358,7 @@ Prints who I am.
 
 <details><summary>✗ Using <code>@command</code></summary>
   
-```sh
+```
 $ who.py am i --help
 usage: who.py [-h] [am] [i]
 
@@ -389,13 +389,13 @@ def echo(
 
 <details><summary>result</summary>
 
-```sh
+```
 $ echo.py Hello world && echo '.'
 Hello world
 .
 ```
 
-```sh
+```
 $ echo.py -n Hello world && echo '.'
 Hello world.
 ```
@@ -457,7 +457,6 @@ optional arguments:
 
 ```
 $ git.py --foobar
-git --foobar
 unknown option: --foobar
 usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
            [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
