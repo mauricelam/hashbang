@@ -437,7 +437,7 @@ def git(
 
 <details><summary>result</summary>
 
-```sh
+```
 $ git.py --help
 usage:  git [--version] [--help] [-C <path>] [-c <name>=<value>]
          [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
@@ -455,7 +455,7 @@ optional arguments:
   -h, --help    show this help message and exit
 ```
 
-```sh
+```
 $ git.py --foobar
 git --foobar
 unknown option: --foobar
