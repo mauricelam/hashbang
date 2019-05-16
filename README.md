@@ -372,11 +372,104 @@ optional arguments:
   
 </details>
 
-Argument annotations
---------------------
+Argument annotation
+-------------------
+
+An argument can be further customized using the argument annotation defined in [PEP 3107](https://www.python.org/dev/peps/pep-3107/).
+
+For example, an alias can be added to the argument.
+
+```python3
+@command
+def echo(
+    *message,
+    trailing_newline: Argument(aliases=('n',)) = True):
+  print(' '.join(message), end=('\n' if trailing_newline else ''))
+```
+
+<details><summary>result</summary>
+
+```sh
+$ echo.py Hello world && echo '.'
+Hello world
+.
+```
+
+```sh
+$ echo.py -n Hello world && echo '.'
+Hello world.
+```
+
+</details>
+
+```python3
+Argument(*, choices=None, completer=None, aliases=(), help=None, type=None, remainder=False)
+```
+
+- `choices` – A sequence of strings representing possible values for the argument. This is used in the help message and also in tab-completion.
+- `completer` – A function that returns a sequence of possible choices for this argument. This can be used for arguments where the choices are too expensive to generate ahead of time.
+- `aliases` – A sequence of strings that are aliases of the option. If the alias has only one character, it is specified with one dash `-f`. If the alias has multiple characters, it is specified with two dashes `--foo`.
+- `help` – The help message for this argument.
+- `type` – A function that takes a string, and its return value will be used as the parameter value instead of the raw input string.
+- `remainder` – Boolean indicating whether this argument should capture all the remaining arguments. This is True by default if the argument is named `_REMAINDER_`.
 
 Help message
 ------------
+The help message for the command is take directly from the docstring of the function. Additionally, the `help` argument in `Argument` can be used to document each argument. A paragraph in the docstring prefixed with `usage:` (case insensitive) is used as the usage message.
+
+```python3
+@command
+def git(
+    command: Argument(help='Possible commands are "branch", "log", etc', choices=('branch', 'log')),
+    *_REMAINDER_):
+  '''
+  git - the stupid content tracker
+  
+  Usage:  git [--version] [--help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p|--paginate|-P|--no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [--super-prefix=<path>]
+           <command> [<args>]
+  '''
+  return ...
+```
+
+<details><summary>result</summary>
+
+```sh
+$ git.py --help
+usage:  git [--version] [--help] [-C <path>] [-c <name>=<value>]
+         [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+         [-p|--paginate|-P|--no-pager] [--no-replace-objects] [--bare]
+         [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+         [--super-prefix=<path>]
+         <command> [<args>]
+
+git - the stupid content tracker
+
+positional arguments:
+  {branch,log}  Possible commands are "branch", "log", etc
+
+optional arguments:
+  -h, --help    show this help message and exit
+```
+
+```sh
+$ git.py --foobar
+git --foobar
+unknown option: --foobar
+usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           <command> [<args>]
+```
+
+</details>
 
 Tab completion
 --------------
+
+Exit code
+---------
