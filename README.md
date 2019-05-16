@@ -4,7 +4,7 @@ Create command line arguments with just an annotation
 
 -----
 
-Hashbang is a Python 3 library for quickly creating command-line ready scripts. In the most basic form, a simple hashbang command can be just a simple annotation.
+Hashbang is a Python 3 library for quickly creating command-line ready scripts. In the most basic form, a simple hashbang command can be just a simple annotation. For more complex types, it relies on Python3's [keyword-only arguments](https://www.python.org/dev/peps/pep-3102/) to provide a seamless syntax for command line usage.
 
 ```python3
 #!/usr/bin/env python3
@@ -75,7 +75,7 @@ optional arguments:
 
 </details>
 
-#### Positional argument
+#### Positional argument (`nargs='?'`)
 
 ```python3
 @command
@@ -106,7 +106,7 @@ rm
 ```
 </details>
 
-#### Multiple positional argument
+#### Multiple positional argument (`nargs=None`)
 
 ```python3
 @command
@@ -122,7 +122,7 @@ $ cp.py textfile.txt copy_of_textfile.txt
 
 </details>
 
-#### Variadic positional argument
+#### Variadic positional argument (`nargs='*'`)
 
 ```python3
 @command
@@ -139,7 +139,7 @@ Hello world
 
 </details>
 
-#### Boolean flag (default False)
+#### Boolean flag (default False) (`action='store_true'`)
 
 ```python3
 @command
@@ -161,7 +161,7 @@ $ pwd.py --resolve_symlink
 
 </details>
 
-#### Boolean flag (default True)
+#### Boolean flag (default True) (`action='store_false'`)
 
 ```python3
 @command
@@ -184,7 +184,7 @@ Hello world.
 
 </details>
 
-#### Keyword argument
+#### Keyword argument (`action='store'`)
 
 ```python3
 @command
@@ -207,19 +207,26 @@ fg
 
 </details>
 
-Usage
------
-
-Hashbang is built around Python's native function signature. In Python 3, an argument can be positional-only, positional-or-keyword, var-positional, keyword-only, or var-keyword.
+Cheatsheet
+----------
 
 ```python3
 def func(positional_only, /, positional_or_keyword, *var_positional, keyword_only=None, **var_keyword):
   pass
 ```
 
-In hashbang, positional-only and positional-or-keyword arguments are treated as positional arguments in command line, and corresponds to `$1` or `$2` etc in shell scripting.
+| Parameter type                                               | Command line example     | argparse equivalent    |
+| ------------------------------------------------------------ | ------------------------ | ---------------------- |
+| Positional-only / positional-or-keyword (no default value)   | `command.py foo`         | `nargs=None`           |
+| Positional-only / positional-or-keyword (with default value) | `command.py foo`         | `nargs='?'`            |
+| Var positional                                               | `command.py foo bar baz` | `nargs='*'`            |
+| Keyword-only (default false)                                 | `command.py --foo`       | `action='store_true'`  |
+| Keyword-only (default true)                                  | `command.py --nofoo`     | `action='store_false'` |
+| Keyword-only (other default types)                           | `command.py --foo value` | `action='store'`       |
+| Var keyword                                                  | Not allowed in hashbang  |                        |
 
-The var-positional argument captures zero or more positional argument from the command line
+Command delegation
+------------------
 
 Argument annotations
 --------------------
