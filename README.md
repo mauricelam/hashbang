@@ -22,13 +22,13 @@ if __name__ == '__main__':
 Installation
 ------------
 
-Hashbang can be simply installed from pip
+Hashbang can be installed from pip
 
 ```sh
 python3 -m pip install hashbang[completion]
 ```
 
-This will also include [argcomplete](https://github.com/kislyuk/argcomplete) which powers the autocomplete for hashbang. The completion feature is optional, however, so you can omit it using `pip install hashbang`.
+This will also include [argcomplete](https://github.com/kislyuk/argcomplete) which powers the autocomplete for hashbang. The completion feature is optional; if you would like to exclude it, install using `pip install hashbang`.
 
 Examples
 --------
@@ -50,14 +50,20 @@ if __name__ == '__main__':
     pwd.execute()
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ pwd.py
 /home/mauricelam/code/hashbang
 ```
 
+</details>
+
 The return value from the function is printed to stdout.
 
 The additional value you get from using hashbang in this simple case is the help message, and the usage message when unexpected arguments are supplied.
+
+<details><summary>result</summary>
 
 ```sh
 $ pwd.py --help
@@ -67,6 +73,8 @@ optional arguments:
   -h, --help  show this help message and exit
 ```
 
+</details>
+
 #### Positional argument
 
 ```python3
@@ -74,6 +82,8 @@ optional arguments:
 def ls(dir=None):
   return os.listdir(path=dir)
 ```
+
+<details><summary>result</summary>
 
 ```sh
 $ ls.py
@@ -85,7 +95,7 @@ var
 ```
 
 ```sh
-$ ls.py etc
+$ ls.py bin
 cp
 df
 echo
@@ -94,6 +104,7 @@ mv
 pwd
 rm
 ```
+</details>
 
 #### Multiple positional argument
 
@@ -103,9 +114,13 @@ def cp(src, dest):
   shutil.copy2(src, dest)
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ cp.py textfile.txt copy_of_textfile.txt
 ```
+
+</details>
 
 #### Variadic positional argument
 
@@ -115,10 +130,14 @@ def echo(*message):
   print(' '.join(message))
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ echo.py Hello world
 Hello world
 ```
+
+</details>
 
 #### Boolean flag (default False)
 
@@ -131,12 +150,16 @@ def pwd(*, resolve_symlink=False):
   return cwd
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ pwd.py
 /var
 $ pwd.py --resolve_symlink
 /private/var
 ```
+
+</details>
 
 #### Boolean flag (default True)
 
@@ -146,13 +169,20 @@ def echo(*message, trailing_newline=True):
   print(' '.join(message), end=('\n' if trailing_newline else ''))
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ echo.py Hello world && echo '.'
 Hello world
 .
+```
+
+```sh
 $ echo.py --notrailing_newline Hello world && echo '.'
 Hello world.
 ```
+
+</details>
 
 #### Keyword argument
 
@@ -167,11 +197,15 @@ def cut(*, fields=None, chars=None, delimeter='\t'):
   return '\n'.join(result)
 ```
 
+<details><summary>result</summary>
+
 ```sh
 $ echo -e 'a,b,c,d\ne,f,g,h' | cut.py --fields '1,2,3' --delimeter=','
 bc
 fg
 ```
+
+</details>
 
 Usage
 -----
