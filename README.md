@@ -336,7 +336,7 @@ Error: No matching delegate
 
 While using the regular `@command` decorator will still work in this situation, but tab-completion and help message will be wrong.
 
-<details><summary>When using <code>@command.delegator</code></summary>
+<details><summary>✓ Using <code>@command.delegator</code></summary>
 
 ```sh
 $ who.py --help
@@ -356,7 +356,7 @@ Prints who I am.
 
 </details>
 
-<details><summary>When using <code>@command</code></summary>
+<details><summary>✗ Using <code>@command</code></summary>
   
 ```sh
 $ who.py am i --help
