@@ -442,6 +442,8 @@ Hello world.
 
 </details>
 
+#### Argument constructor
+
 ```python3
 Argument(*, choices=None, completer=None, aliases=(), help=None, type=None, remainder=False)
 ```
