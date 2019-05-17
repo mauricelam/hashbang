@@ -50,7 +50,7 @@ if __name__ == '__main__':
     pwd.execute()
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ pwd.py</code></summary>
 
 ```
 $ pwd.py
@@ -63,7 +63,7 @@ The return value from the function is printed to stdout.
 
 The additional value you get from using hashbang in this simple case is the help message, and the usage message when unexpected arguments are supplied.
 
-<details><summary>result</summary>
+<details><summary><code>$ pwd.py --help</code></summary>
 
 ```
 $ pwd.py --help
@@ -83,7 +83,7 @@ def ls(dir=None):
   return os.listdir(path=dir)
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ ls.py</code></summary>
 
 ```
 $ ls.py
@@ -93,6 +93,9 @@ home
 usr
 var
 ```
+
+</details>
+<details><summary><code>$ ls.py bin</code></summary>
 
 ```
 $ ls.py bin
@@ -114,10 +117,12 @@ def cp(src, dest):
   shutil.copy2(src, dest)
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ cp.py textfile.txt copy_of_textfile.txt</code></summary>
 
 ```
 $ cp.py textfile.txt copy_of_textfile.txt
+$ ls
+textfile.txt    copy_of_textfile.txt
 ```
 
 </details>
@@ -130,7 +135,7 @@ def echo(*message):
   print(' '.join(message))
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ echo.py Hello world</code></summary>
 
 ```
 $ echo.py Hello world
@@ -150,11 +155,18 @@ def pwd(*, resolve_symlink=False):
   return cwd
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ pwd.py</code></summary>
 
 ```
 $ pwd.py
 /var
+```
+
+</details>
+
+<details><summary><code>$ pwd.py --resolve_symlink</code></summary>
+
+```
 $ pwd.py --resolve_symlink
 /private/var
 ```
@@ -169,13 +181,17 @@ def echo(*message, trailing_newline=True):
   print(' '.join(message), end=('\n' if trailing_newline else ''))
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ echo.py Hello world && echo '.'</code></summary>
 
 ```
 $ echo.py Hello world && echo '.'
 Hello world
 .
 ```
+
+</details>
+
+<details><summary><code>$ echo.py --notrailing_newline Hello world && echo '.'</code></summary>
 
 ```
 $ echo.py --notrailing_newline Hello world && echo '.'
@@ -197,7 +213,7 @@ def cut(*, fields=None, chars=None, delimeter='\t'):
   return '\n'.join(result)
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ echo -e 'a,b,c,d\ne,f,g,h' | cut.py --fields '1,2,3' --delimeter=','</code></summary>
 
 ```
 $ echo -e 'a,b,c,d\ne,f,g,h' | cut.py --fields '1,2,3' --delimeter=','
@@ -250,12 +266,16 @@ if __name__ == '__main__':
   subcommands(branch=branch, log=log).execute()
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ git.py branch</code></summary>
   
 ```
 $ git.py branch
 master
 ```
+
+</details>
+
+<details><summary><code>$ git.py branch hello</code></summary>
 
 ```
 $ git.py branch hello
@@ -263,6 +283,10 @@ $ git.py branch
 master
 hello
 ```
+
+</details>
+
+<details><summary><code>$ git.py log</code></summary>
 
 ```
 $ git.py log
@@ -308,7 +332,7 @@ def who(am=None, i=None, *_REMAINDER_):
     raise NoMatchingDelegate
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ who.py</code></summary>
 
 ```
 $ who.py
@@ -317,15 +341,27 @@ mauricelam ttys000  May  8 00:03
 mauricelam ttys001  May  8 00:04
 ```
 
+</details>
+
+<details><summary><code>$ who.py am i</code></summary>
+
 ```
 $ who.py am i 
 mauricelam ttys001  May  8 00:04
 ```
 
+</details>
+
+<details><summary><code>$ who.py --print_dead_process</code></summary>
+
 ```
 $ who.py --print_dead_process
 mauricelam ttys002  May  8 00:40 	term=0 exit=0
 ```
+
+</details>
+
+<details><summary><code>$ who.py are you</code></summary>
 
 ```
 $ who.py are you
@@ -387,13 +423,17 @@ def echo(
   print(' '.join(message), end=('\n' if trailing_newline else ''))
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ echo.py Hello world && echo '.'</code></summary>
 
 ```
 $ echo.py Hello world && echo '.'
 Hello world
 .
 ```
+
+</details>
+
+<details><summary><code>$ echo.py -n Hello world && echo '.'</code></summary>
 
 ```
 $ echo.py -n Hello world && echo '.'
@@ -435,7 +475,7 @@ def git(
   return ...
 ```
 
-<details><summary>result</summary>
+<details><summary><code>$ git.py --help</code></summary>
 
 ```
 $ git.py --help
@@ -455,9 +495,13 @@ optional arguments:
   -h, --help    show this help message and exit
 ```
 
+</details>
+
+<details><summary><code>$ git.py --nonexistent</code></summary>
+
 ```
-$ git.py --foobar
-unknown option: --foobar
+$ git.py --nonexistent
+unknown option: --nonexistent
 usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
            [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
            [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
