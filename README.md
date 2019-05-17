@@ -516,5 +516,71 @@ usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
 Tab completion
 --------------
 
+#### Setup
+
+Hashbang also comes with tab completion functionality, powered by [argcomplete](https://github.com/kislyuk/argcomplete). Since argcomplete is an optional dependency of hashbang, you can install the completion feature using
+
+```sh
+python3 -m pip install hashbang[completion]
+```
+
+After installing, to register a command for tab-completion, run
+
+```sh
+eval "$(register-python-argcomplete my-awesome-script)"
+```
+
+Alternatively, to activate global completion for all commands, follow the one-time setup directions in the [Global completion](https://github.com/kislyuk/argcomplete#global-completion) section of argcomplete's documentation, and then add the string `PYTHON_ARGCOMPLETE_OK` to the top of the file as a comment (after the `#!` line).
+
+#### Specifying the choices
+
+The simplest way to use tab completion is via the `choices` argument in the `Argument` constructor.
+
+```python3
+@command
+def apt_get(command: Argument(choices=('update', 'upgrade', 'install', 'remove')), *_REMAINDER_):
+  return subprocess.check_output(['apt-get', command, *_REMAINDER])
+```
+
+<details><summary><code>$ apt_get.py &lt;TAB&gt;&lt;TAB&gt;</code></summary>
+
+```
+$ apt_get.py <TAB><TAB>
+update    upgrade    install    remove
+```
+```
+$ apt_get.py up<TAB><TAB>
+update    upgrade
+```
+```
+$ apt_get.py upg<TAB>
+$ apt_get.py upgrade
+```
+
+</details>
+
+#### Using a completer
+
+If the choices are not known ahead of time (before execution), or is too expensive to precompute, you can instead specify a completer for the argument.
+
+```python3
+@command
+def cp(src: Argument(completer=lambda x: os.listdir()), dest):
+  shutils.copy2(src, dest)
+```
+
+<details><summary><code>$ cp.py &lt;TAB&gt;&lt;TAB&gt;</code></summary>
+
+```
+$ cp.py <TAB><TAB>
+LICENSE           build             hashbang          requirements.txt  tests
+```
+```
+$ cp.py LIC<TAB>
+$ cp.py LICENSE 
+```
+
+</details>
+
 Exit code
 ---------
