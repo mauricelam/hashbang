@@ -2,7 +2,7 @@
 
 '''
 $ basic.py  # returncode=2 stderr=True
-usage: basic.py [--verbose] [-h] {subcommand1,subcommand2}
+usage: basic.py [--verbose] [-h] subcommand
 basic.py: error: the following arguments are required: subcommand
 
 $ basic.py subcommand1 123 456 789
@@ -15,16 +15,14 @@ $ basic.py subcommand2 345 678 9 --verbose
 Executing subcommand2...
 subcommand2 arg=345 remaining=('678', '9') flag2=False
 
-$ basic.py nonexistent  # returncode=2 stderr=True
-usage: basic.py [--verbose] [-h] {subcommand1,subcommand2}
-basic.py: error: argument subcommand: invalid choice: 'nonexistent' (choose \
-from 'subcommand1', 'subcommand2')
+$ basic.py nonexistent  # returncode=1 stderr=True
+No matching delegate
 
 $ basic.py --help  # returncode=100
-> usage: basic.py [--verbose] [{subcommand1,subcommand2}]
+> usage: basic.py [--verbose] [subcommand]
 >
 > positional arguments:
->   {subcommand1,subcommand2}
+>   subcommand
 >
 > optional arguments:
 >   --verbose
@@ -59,7 +57,9 @@ def subcommand2(arg, *remaining, flag2=False):
 
 @command.delegator
 def main(
-        subcommand: Argument(choices=('subcommand1', 'subcommand2')),
+        # Usually you would want to specify the choices for a subcommand arg
+        # subcommand: Argument(choices=('subcommand1', 'subcommand2')),
+        subcommand,
         *_REMAINDER_,
         verbose=False):
     if verbose:

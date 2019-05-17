@@ -113,7 +113,8 @@ class Argument:
                             name,
                             choices=self.choices,
                             help=self.help,
-                            type=self.type)
+                            type=self.type,
+                            nargs=None)
                 else:
                     argument = parser.add_argument(
                             name,
