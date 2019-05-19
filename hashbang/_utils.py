@@ -19,12 +19,3 @@ def optionalarg(decorator):
             return __impl
 
     return __decorator
-
-
-def log(*objects, **kwargs):
-    if log.verbose:
-        print(*objects, file=log.file, **kwargs)
-
-
-log.verbose = False
-log.file = sys.stderr

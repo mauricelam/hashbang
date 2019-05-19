@@ -10,8 +10,15 @@ from collections import OrderedDict
 from inspect import Parameter
 from itertools import chain, islice, repeat
 from pathlib import Path
-from ._utils import optionalarg, log
+from ._utils import optionalarg
 from . import _completion
+
+__all__ = [
+    'command',
+    'Argument',
+    'NoMatchingDelegate',
+    'subcommands',
+]
 
 
 class _CommandParser(argparse.ArgumentParser):
@@ -86,13 +93,15 @@ class Argument:
             aliases=(),
             help=None,
             type=None,
-            remainder=False):
+            remainder=False,
+            validator=None):
         self.choices = choices
         self.completer = completer
         self.aliases = aliases
         self.help = help
         self.type = type
         self.remainder = remainder
+        self.validator = validator
 
     def add_argument(self, parser, argname, param, *, partial=False):
         argument = None
@@ -291,7 +300,8 @@ class _CommandObj:
             # Try to create a sensible default for prog name
             argv = sys.argv
             argv[0] = Path(argv[0]).name
-            guess_prog = ' '.join(arg for arg in argv if arg not in args)
+            guess_prog = ' '.join(arg for arg in argv
+                                  if arg not in (list(args) + ['--']))
             self.prog = guess_prog
         description, usage = _CommandObj.parse_doc(self.func)
 

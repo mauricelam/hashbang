@@ -9,16 +9,24 @@ import sys
 import traceback
 from inspect import Parameter
 
+__all__ = [
+    'fuzzy_path_validator'
+]
+
 
 def add_argument(argument, argparse_argument):
     if argcomplete is not None:
-        if argument.completer is not None:
-            argparse_argument.completer = argument.completer
-        elif argument.choices is not None:
-            # Cannot use argparse's built in choices, since we may be parsing
-            # partial arguments in completion mode
-            argparse_argument.completer = (
-                    argcomplete.completers.ChoicesCompleter(argument.choices))
+        completer = argument.completer
+        if completer is None and argument.choices is not None:
+            completer = argcomplete.completers.\
+                        ChoicesCompleter(argument.choices)
+        if completer is not None:
+            validator = argument.validator or prefix_validator
+
+            def validated(**kwargs):
+                choices = completer(**kwargs)
+                return [c for c in choices if validator(c, kwargs['prefix'])]
+            argparse_argument.completer = validated
 
 
 def execute_complete(commandobj, args):
@@ -31,7 +39,8 @@ def execute_complete(commandobj, args):
     parser = commandobj.create_parser(args)
     finder = argcomplete.CompletionFinder(
         argument_parser=parser,
-        always_complete_options=False)
+        always_complete_options=False,
+        validator=lambda *_: True)
 
     active_parsers = finder._patch_argument_parser()
     parsed_args = argparse.Namespace()
@@ -76,8 +85,6 @@ def execute_complete(commandobj, args):
 
 def modify_parser(commandobj, parser, args):
     if argcomplete is not None:
-        completion_filter = getattr(
-                commandobj.func, 'completion_filter', prefix_filter)
 
         class CompletionFinder(argcomplete.CompletionFinder):
             def _get_completions(
@@ -89,16 +96,15 @@ def modify_parser(commandobj, parser, args):
                 '''
                 Intercept argcomplete and allow attaching our own
                 completers (which can be attached to functions in addition
-                to arguments)
+                to arguments). This allows us to do command delegation without
+                knowing their relationship ahead of time.
                 '''
                 try:
                     global _command_complete
                     _command_complete = (cword_prefix, (lambda *_: None))
 
-                    choices = commandobj.complete(
+                    completions = commandobj.complete(
                             args if args is not None else comp_words[1:])
-                    completions = list(completion_filter(
-                            choices, cword_prefix))
                     completions = self.filter_completions(completions)
                     completions = self.quote_completions(
                             completions, cword_prequote, first_colon_pos)
@@ -118,32 +124,12 @@ def modify_parser(commandobj, parser, args):
                 always_complete_options=False)
 
 
-def prefix_filter(choices, cword):
-    return [choice for choice in choices
-            if choice.lower().startswith(cword.lower())]
+def prefix_validator(completion, cword):
+    return completion.startswith(cword)
 
 
-def substring_filter(choices, cword):
-    return [choice for choice in choices
-            if cword.lower() in choice.lower()]
-
-
-def fuzzy_path_filter(choices, cword):
-    def path_match(subpath, fullpath):
-        fullpath_parts = fullpath.split(os.sep)
-        return all(
-            any(
-                fullpath_part.lower().startswith(subpath_part.lower())
-                for fullpath_part in fullpath_parts)
-            for subpath_part in subpath.split(os.sep)
-        )
-    return [choice for choice in choices if path_match(cword, choice)]
-
-
-def completer(command, *, filter=prefix_filter):
-    def _decorator(func):
-        command.completer = func
-        command.completion_filter = filter
-        return func
-
-    return _decorator
+def fuzzy_path_validator(completion, cword):
+    for full, sub in zip(completion.split(os.sep), cword.split(os.sep)):
+        if not full.lower().startswith(sub.lower()):
+            return False
+    return True

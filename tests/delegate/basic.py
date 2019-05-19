@@ -18,6 +18,9 @@ subcommand2 arg=345 remaining=('678', '9') flag2=False
 $ basic.py nonexistent  # returncode=1 stderr=True
 No matching delegate
 
+$ basic.py subcommand2 -- 123 -- --abcd
+subcommand2 arg=123 remaining=('--abcd',) flag2=False
+
 $ basic.py --help  # returncode=100
 > usage: basic.py [--verbose] [subcommand]
 >
