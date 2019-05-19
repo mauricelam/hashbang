@@ -1,4 +1,4 @@
-# Hashbang [![Build status](https://travis-ci.com/mauricelam/hashbang.svg?branch=master)](https://travis-ci.com/mauricelam/hashbang)
+# Hashbang <a href="https://travis-ci.com/mauricelam/hashbang" target="_blank">![Build status](https://travis-ci.com/mauricelam/hashbang.svg?branch=master)</a>
 Create command line arguments with just an annotation
 
 
