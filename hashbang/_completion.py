@@ -36,7 +36,7 @@ def execute_complete(commandobj, args):
     global _command_complete
     cword_prefix, debug = _command_complete
 
-    parser = commandobj.create_parser(args)
+    parser = commandobj._create_parser(args)
     finder = argcomplete.CompletionFinder(
         argument_parser=parser,
         always_complete_options=False,

@@ -40,7 +40,7 @@ class _CommandParser(argparse.ArgumentParser):
 
 
 @optionalarg
-def command(func, mixins=(), *, prog=None):
+def command(func, extensions=(), **kwargs):
     '''
     Usage:
 
@@ -48,12 +48,12 @@ def command(func, mixins=(), *, prog=None):
     def main(arg1, *, flag1=False):
         # Do stuff
     '''
-    func._command = _CommandObj(func, mixins, prog=prog)
+    func._command = HashbangCommand(func, extensions, **kwargs)
     return func
 
 
 @optionalarg
-def _commanddelegator(func, mixins=(), *, prog=None):
+def _commanddelegator(func, extensions=(), **kwargs):
     '''
     Usage:
 
@@ -66,7 +66,7 @@ def _commanddelegator(func, mixins=(), *, prog=None):
     .execute() on another command, or raise NoMatchingDelegate exception. Any
     other side-effects are undesired.
     '''
-    func._command = _DelegatingCommandObj(func, mixins, prog=prog)
+    func._command = _DelegatingHashbangCommand(func, extensions, **kwargs)
     return func
 
 
@@ -87,6 +87,7 @@ class Argument:
 
     def __init__(
             self,
+            name=None,
             *,
             choices=None,
             completer=None,
@@ -95,6 +96,7 @@ class Argument:
             type=None,
             remainder=False,
             validator=None):
+        self.name = name
         self.choices = choices
         self.completer = completer
         self.aliases = aliases
@@ -202,45 +204,57 @@ class Argument:
 
         return argument
 
+    def apply_hashbang_extension(self, hashbang_cmd):
+        if self.name is None:
+            raise RuntimeError('Name must be defined for Argument used in '
+                               'decorators')
+        hashbang_cmd.arguments[self.name] = (
+                hashbang_cmd.signature.parameters[self.name], self)
 
-class _CommandObj:
 
-    def __init__(self, func, mixins, prog=None):
+def _default_return_value_processor(val):
+    if val is not None:
+        print(val)
+
+
+def _default_exception_handler(exception):
+    try:
+        raise exception
+    except (subprocess.CalledProcessError, RuntimeError) as e:
+        print('Error:', str(e), file=sys.stderr)
+    except NoMatchingDelegate as e:
+        print(str(e), file=sys.stderr)
+    except KeyboardInterrupt as e:
+        print('^C', file=sys.stderr)
+
+
+class HashbangCommand:
+
+    def __init__(self, func, extensions=(), **kwargs):
+        # Supposedly read only by extensions (not enforced though)
         self.func = func
-        self.prog = prog
-
+        self.func.execute = self.execute
         self.signature = inspect.signature(func)
         self.parser = None
+        self.extensions = extensions
 
-        self.func.execute = self.execute
+        # Modifyable by extensions
+        self.arguments = {}
+        self.prog = None
+        self.return_value_processor = _default_return_value_processor
+        self.exception_handler = _default_exception_handler
 
-        self.mixins = mixins
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-    def get_parser(self, func, prog, partial, description, usage, arguments):
-        '''
-        Translate introspected Python function signature into argparse
-        '''
-        parser = _CommandParser(
-            prog=prog,
-            description=description,
-            usage=usage,
-            add_help=False)
-
-        for name, param, argument in arguments:
-            retargument = argument.add_argument(
-                    parser, name, param, partial=partial)
-            _completion.add_argument(argument, retargument)
-
-        return parser
-
-    def get_args(self, opts, remaining):
+    def _get_args(self, opts, remaining):
         '''
         Turns the return values from argparse.parse_args or parse_known_args
         into Python (*args, **kwargs) format.
         '''
         args = []
         kwargs = {}
-        for argname, param, argument in self.arguments:
+        for argname, (param, argument) in self.arguments.items():
             name = argname
             value = opts.get(name, None)
             if argument.remainder:
@@ -254,20 +268,10 @@ class _CommandObj:
                 kwargs[argname] = value
         return (args, kwargs)
 
-    @staticmethod
-    def parse_doc(func):
-        doc = inspect.getdoc(func)
-        if doc is None:
-            return (None, None)
-        description, usage, *_ = (
-                re.split('usage: ', doc, flags=re.IGNORECASE) + [None]
-        )
-        return (description, usage)
-
     def execute(self, args=None):
-        return self.execute_mode(_CommandObj.exec_mode, args=args)
+        return self._execute_mode(HashbangCommand.exec_mode, args=args)
 
-    def execute_mode(self, mode, args=None):
+    def _execute_mode(self, mode, args=None):
         if mode == 'execute':
             return self._execute_with_error_handling(args)
         elif mode == 'help':
@@ -284,18 +288,14 @@ class _CommandObj:
                 setproctitle.setproctitle(sys.argv[0])
             except Exception:
                 pass
-            retval = self._execute_with_list(args=args)
-            retval and print(retval)
+            return_value = self._execute_with_list(args=args)
+            self.return_value_processor(return_value)
             sys.exit(0)
-        except (subprocess.CalledProcessError, RuntimeError) as e:
-            print('Error:', str(e), file=sys.stderr)
-        except NoMatchingDelegate as e:
-            print(str(e), file=sys.stderr)
-        except KeyboardInterrupt as e:
-            print('^C', file=sys.stderr)
+        except Exception as e:
+            self.exception_handler(e)
         sys.exit(1)
 
-    def create_parser(self, args, partial=False):
+    def _create_parser(self, args, partial=False):
         if self.prog is None and args is not None:
             # Try to create a sensible default for prog name
             argv = sys.argv
@@ -303,38 +303,54 @@ class _CommandObj:
             guess_prog = ' '.join(arg for arg in argv
                                   if arg not in (list(args) + ['--']))
             self.prog = guess_prog
-        description, usage = _CommandObj.parse_doc(self.func)
 
-        self.arguments = [
-                (
-                    argname,
-                    param,
-                    param.annotation
-                    if param.annotation is not Parameter.empty
-                    else Argument()
-                )
-                for argname, param in self.signature.parameters.items()]
+        # Parse the description and usage from the docstring
+        doc = inspect.getdoc(self.func)
+        if doc is None:
+            description, usage = (None, None)
+        else:
+            description, usage, *_ = (
+                    re.split('usage: ', doc, flags=re.IGNORECASE) + [None]
+            )
 
-        self.parser = self.get_parser(
-                self.func,
-                self.prog,
-                partial,
-                description,
-                usage,
-                self.arguments)
+        self.arguments = {
+            argname: (
+                param,
+                param.annotation if param.annotation is not Parameter.empty
+                else Argument())
+            for argname, param in self.signature.parameters.items()
+        }
+
+        for extension in self.extensions:
+            if not callable(getattr(extension, 'apply_hashbang_extension')):
+                raise RuntimeError(
+                    'extensions passed in @command must implement the method '
+                    '"apply_hashbang_extension"')
+            extension.apply_hashbang_extension(self)
+
+        self.parser = _CommandParser(
+            prog=self.prog,
+            description=description,
+            usage=usage,
+            add_help=False)
+
+        for name, (param, argument) in self.arguments.items():
+            retargument = argument.add_argument(
+                    self.parser, name, param, partial=partial)
+            _completion.add_argument(argument, retargument)
         return self.parser
 
-    def execute_partial(self, args=None):
-        self.create_parser(args, partial=True)
+    def _execute_partial(self, args=None):
+        self._create_parser(args, partial=True)
         parsed, remaining = self.parser.parse(args)
-        func_args, func_kwargs = self.get_args(vars(parsed), remaining)
+        func_args, func_kwargs = self._get_args(vars(parsed), remaining)
         func_args = [arg if arg is not Parameter.empty else None
                      for arg in func_args]
         return self.func(*func_args, **func_kwargs)
 
     def help(self, args):
         if self.parser is None:
-            self.create_parser(args, partial=True)
+            self._create_parser(args, partial=True)
         self.parser.print_help()
         self.parser.exit(100)
 
@@ -367,7 +383,7 @@ class _CommandObj:
         parameters (*args, **kwargs) and run self.func
         '''
 
-        self.create_parser(args)
+        self._create_parser(args)
         self.parser.add_argument(
                 '-h', '--help',
                 action=self._make_help_action(args), default=argparse.SUPPRESS,
@@ -377,30 +393,30 @@ class _CommandObj:
 
         parsed, remaining = self.parser.parse(
                 args if args is not None else sys.argv[1:])
-        func_args, func_kwargs = self.get_args(vars(parsed), remaining)
+        func_args, func_kwargs = self._get_args(vars(parsed), remaining)
         return self.func(*func_args, **func_kwargs)
 
 
-_CommandObj.exec_mode = 'execute'
+HashbangCommand.exec_mode = 'execute'
 
 
-class _DelegatingCommandObj(_CommandObj):
+class _DelegatingHashbangCommand(HashbangCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def help(self, args):
-        _CommandObj.exec_mode = 'help'
+        HashbangCommand.exec_mode = 'help'
         try:
-            return super().execute_partial(args)
+            return super()._execute_partial(args)
         except NoMatchingDelegate as e:
             return super().help(args)
         self.parser.exit(100)
 
     def complete(self, args):
-        _CommandObj.exec_mode = 'complete'
+        HashbangCommand.exec_mode = 'complete'
         try:
-            return super().execute_partial(args)
+            return super()._execute_partial(args)
         except NoMatchingDelegate as e:
             return super().complete(args)
 
@@ -416,6 +432,8 @@ def subcommands(*args, **kwargs):
         # On Python 3.6 or above, kwargs are sorted (PEP 468)
         cmds = OrderedDict(args or kwargs)
     else:
+        # On lower versions, kwargs are unordered, so we just sort them by
+        # natural order to keep the order predictable
         cmds = OrderedDict(args or sorted(kwargs.items()))
 
     @command.delegator

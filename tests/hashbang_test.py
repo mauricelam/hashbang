@@ -21,6 +21,7 @@ TEST_GLOBS = [
     (TEST_DIR/'basic').glob('*.py'),
     (TEST_DIR/'argument').glob('*.py'),
     (TEST_DIR/'delegate').glob('*.py'),
+    (TEST_DIR/'extension').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
 
@@ -85,7 +86,6 @@ class Test(unittest.TestCase):
                             p.returncode,
                             doctest.get_config('returncode', 0),
                             msg=stderr)
-                        print('stdout', stdout)
                         doctest.make_assertion(self, stdout, stderr)
 
     def test_decorator(self):
