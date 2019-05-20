@@ -222,11 +222,6 @@ fg
 Cheatsheet
 ----------
 
-```python3
-def func(positional_only, /, positional_or_keyword, *var_positional, keyword_only=None, **var_keyword):
-  pass
-```
-
 | Parameter type                         | Python syntax            | Command line example     | argparse equivalent        |
 | -------------------------------------- | ------------------------ | ------------------------ | -------------------------- |
 | Positional (no default value)          | `def func(foo)`          | `command.py foo`         | `nargs=None`               |
