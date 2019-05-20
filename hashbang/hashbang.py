@@ -239,7 +239,7 @@ class HashbangCommand:
         self.extensions = extensions
 
         # Modifyable by extensions
-        self.arguments = {}
+        self.arguments = OrderedDict()
         self.prog = None
         self.return_value_processor = _default_return_value_processor
         self.exception_handler = _default_exception_handler
