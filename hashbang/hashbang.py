@@ -27,7 +27,6 @@ class _CommandParser(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.arguments = {}
 
     def add_argument(self, *args, **kwargs):
         return super().add_argument(*args, **kwargs)
@@ -313,13 +312,12 @@ class HashbangCommand:
                     re.split('usage: ', doc, flags=re.IGNORECASE) + [None]
             )
 
-        self.arguments = {
-            argname: (
+        self.arguments = OrderedDict(
+            (argname, (
                 param,
                 param.annotation if param.annotation is not Parameter.empty
-                else Argument())
-            for argname, param in self.signature.parameters.items()
-        }
+                else Argument()))
+            for argname, param in self.signature.parameters.items())
 
         for extension in self.extensions:
             if not callable(getattr(extension, 'apply_hashbang_extension')):
@@ -334,10 +332,7 @@ class HashbangCommand:
             usage=usage,
             add_help=False)
 
-        sorted_args = sorted(
-            self.arguments.items(),
-            key=lambda kv: list(self.signature.parameters.keys()).index(kv[0]))
-        for name, (param, argument) in sorted_args:
+        for name, (param, argument) in self.arguments.items():
             retargument = argument.add_argument(
                     self.parser, name, param, partial=partial)
             _completion.add_argument(argument, retargument)
