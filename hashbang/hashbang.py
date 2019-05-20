@@ -238,8 +238,8 @@ class HashbangCommand:
         self.parser = None
         self.extensions = extensions
 
-        # Modifyable by extensions
-        self.arguments = OrderedDict()
+        # Modifiable by extensions
+        self.arguments = {}
         self.prog = None
         self.return_value_processor = _default_return_value_processor
         self.exception_handler = _default_exception_handler
@@ -334,7 +334,10 @@ class HashbangCommand:
             usage=usage,
             add_help=False)
 
-        for name, (param, argument) in self.arguments.items():
+        sorted_args = sorted(
+            self.arguments.items(),
+            key=lambda kv: list(self.signature.parameters.keys()).index(kv[0]))
+        for name, (param, argument) in sorted_args:
             retargument = argument.add_argument(
                     self.parser, name, param, partial=partial)
             _completion.add_argument(argument, retargument)
