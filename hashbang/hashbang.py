@@ -230,7 +230,7 @@ def _default_exception_handler(exception):
 class HashbangCommand:
 
     def __init__(self, func, extensions=(), **kwargs):
-        # Supposedly read only by extensions (not enforced though)
+        # Read only by extensions (not enforced)
         self.func = func
         self.func.execute = self.execute
         self.signature = inspect.signature(func)
@@ -244,7 +244,11 @@ class HashbangCommand:
         self.exception_handler = _default_exception_handler
 
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            if key in ['prog', 'return_value_processor', 'exception_handler']:
+                setattr(self, key, value)
+            else:
+                raise RuntimeError(
+                    'Command property "{}" cannot be set'.format(key))
 
     def _get_args(self, opts, remaining):
         '''
