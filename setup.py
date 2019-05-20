@@ -11,15 +11,13 @@ setuptools.setup(
     version="0.0.4",
     author="Maurice Lam",
     author_email="mauriceprograms@gmail.com",
-    description="Create command line arguments with just an annotation",
+    description="Turn Python functions into command line interfaces",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
     packages=["hashbang"],
     test_suite="tests/hashbang_test.py",
-    install_requires=[
-        'pathlib;python_version<"3.4"',
-    ],
+    install_requires=[],
     extras_require={
         "completion": ["argcomplete"]
     },
