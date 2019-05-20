@@ -227,16 +227,16 @@ def func(positional_only, /, positional_or_keyword, *var_positional, keyword_onl
   pass
 ```
 
-| Parameter type                                               | Command line example     | argparse equivalent        |
-| ------------------------------------------------------------ | ------------------------ | -------------------------- |
-| Positional-only / positional-or-keyword (no default value)   | `command.py foo`         | `nargs=None`               |
-| Positional-only / positional-or-keyword (with default value) | `command.py foo`         | `nargs='?'`                |
-| Var positional                                               | `command.py foo bar baz` | `nargs='*'`                |
-| Var positional (when named '\_REMAINDER\_')                  |                          | `nargs=argparse.REMAINDER` |
-| Keyword-only (default false)                                 | `command.py --foo`       | `action='store_true'`      |
-| Keyword-only (default true)                                  | `command.py --nofoo`     | `action='store_false'`     |
-| Keyword-only (other default types)                           | `command.py --foo value` | `action='store'`           |
-| Var keyword                                                  | Not allowed in hashbang  |                            |
+| Parameter type                         | Python syntax            | Command line example     | argparse equivalent        |
+| -------------------------------------- | ------------------------ | ------------------------ | -------------------------- |
+| Positional (no default value)          | `def func(foo)`          | `command.py foo`         | `nargs=None`               |
+| Positional (with default value)        | `def func(foo=None)`     | `command.py foo`         | `nargs='?'`                |
+| Var positional                         | `def func(*foo)`         | `command.py foo bar baz` | `nargs='*'`                |
+| Var positional (named `\_REMAINDER\_`) | `def func(*_REMAINDER_)` |                          | `nargs=argparse.REMAINDER` |
+| Keyword-only (default false)           | `def func(*, foo=False)` | `command.py --foo`       | `action='store_true'`      |
+| Keyword-only (default true)            | `def func(*, foo=True)`  | `command.py --nofoo`     | `action='store_false'`     |
+| Keyword-only (other default types)     | `def func(*, foo='bar')` | `command.py --foo value` | `action='store'`           |
+| Var keyword                            | `def func(**kwargs)`     | Not allowed in hashbang  |                            |
 
 Command delegation
 ------------------
