@@ -337,6 +337,7 @@ class HashbangCommand:
         sorted_args = sorted(
             self.arguments.items(),
             key=lambda kv: list(self.signature.parameters.keys()).index(kv[0]))
+        print('sorted=', name)
         for name, (param, argument) in sorted_args:
             retargument = argument.add_argument(
                     self.parser, name, param, partial=partial)
