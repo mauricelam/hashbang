@@ -10,7 +10,7 @@ $ exception_handler.py  # returncode=1 stderr=True glob=True
 >     raise Exception('Raiser: Exception')
 > Exception: Raiser: Exception
 
-$ exception_handler.py --exception=RuntimeError  # returncode=1 stderr=True glob=True
+$ exception_handler.py --error=runtime  # returncode=1 stderr=True glob=True
 > Traceback (most recent call last):
 >   File "exception_handler.py", line *, in <module>
 >     raiser.execute()
@@ -19,7 +19,7 @@ $ exception_handler.py --exception=RuntimeError  # returncode=1 stderr=True glob
 >     raise RuntimeError('Raiser: RuntimeError')
 > RuntimeError: Raiser: RuntimeError
 
-$ exception_handler.py --exception=CustomException  # returncode=1 stderr=True
+$ exception_handler.py --error=custom  # returncode=1 stderr=True
 This is a custom exception
 '''
 
@@ -41,10 +41,10 @@ def exception_handler(exception):
 
 
 @command(exception_handler=exception_handler)
-def raiser(*, exception=None):
-    if exception == 'RuntimeError':
+def raiser(*, error=None):
+    if error == 'runtime':
         raise RuntimeError('Raiser: RuntimeError')
-    elif exception == 'CustomException':
+    elif error == 'custom':
         raise CustomException()
     else:
         raise Exception('Raiser: Exception')
