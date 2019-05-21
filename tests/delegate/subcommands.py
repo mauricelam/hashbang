@@ -5,25 +5,25 @@ $ subcommands.py  # returncode=2 stderr=True
 usage: subcommands.py [-h] {pairs,kwargs,auto}
 subcommands.py: error: the following arguments are required: subcommand
 
-$ subcommands.py --help  # returncode=100
+$ subcommands.py --help
 > usage: subcommands.py [{pairs,kwargs,auto}]
 >
 > positional arguments:
 >   {pairs,kwargs,auto}
 
-$ subcommands.py auto --help  # returncode=100
+$ subcommands.py auto --help
 > usage: subcommands.py auto [{one,two,on1,tw2}]
 >
 > positional arguments:
 >   {one,two,on1,tw2}
 
-$ subcommands.py pairs --help  # returncode=100
+$ subcommands.py pairs --help
 > usage: subcommands.py pairs [{one,two,on1,tw2}]
 >
 > positional arguments:
 >   {one,two,on1,tw2}
 
-$ subcommands.py kwargs --help  # returncode=100 glob=True
+$ subcommands.py kwargs --help  # glob=True
 > usage: subcommands.py kwargs [{*}]
 >
 > positional arguments:

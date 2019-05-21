@@ -21,7 +21,7 @@ $ var_positional.py 123 456 --abc  # returncode=2 stderr=True
 usage: var_positional.py [-h] arg1 [arg2] [args [args ...]]
 var_positional.py: error: unrecognized arguments: --abc
 
-$ var_positional.py --help  # returncode=100
+$ var_positional.py --help
 > usage: var_positional.py [-h] arg1 [arg2] [args [args ...]]
 >
 > positional arguments:

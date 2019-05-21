@@ -6,7 +6,7 @@ a
 b
 c
 
-$ return_value_processor.py --help  # returncode=100
+$ return_value_processor.py --help
 > usage: print_abc [-h]
 >
 > optional arguments:

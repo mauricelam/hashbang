@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-$ choices.py --help  # returncode=100
+$ choices.py --help
 > usage: choices.py [--arg {one,two,three}] [-h]
 >
 > optional arguments:

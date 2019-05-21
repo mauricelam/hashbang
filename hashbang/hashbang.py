@@ -359,7 +359,7 @@ class HashbangCommand:
         if self.parser is None:
             self._create_parser(args, partial=True)
         self.parser.print_help()
-        self.parser.exit(100)
+        self.parser.exit(0)
 
     def complete(self, args):
         return _completion.execute_complete(self, args)
@@ -418,7 +418,7 @@ class _DelegatingHashbangCommand(HashbangCommand):
             return super()._execute_partial(args)
         except NoMatchingDelegate as e:
             return super().help(args)
-        self.parser.exit(100)
+        raise RuntimeError('Delegate command should call sys.exit')
 
     def complete(self, args):
         HashbangCommand.exec_mode = 'complete'

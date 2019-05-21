@@ -21,7 +21,7 @@ No matching delegate
 $ basic.py subcommand2 -- 123 -- --abcd
 subcommand2 arg=123 remaining=('--abcd',) flag2=False
 
-$ basic.py --help  # returncode=100
+$ basic.py --help
 > usage: basic.py [--verbose] [subcommand]
 >
 > positional arguments:
@@ -30,7 +30,7 @@ $ basic.py --help  # returncode=100
 > optional arguments:
 >   --verbose
 
-$ basic.py subcommand1 --help  # returncode=100
+$ basic.py subcommand1 --help
 > usage: basic.py subcommand1 [--flag1] [arg] [remaining [remaining ...]]
 >
 > positional arguments:

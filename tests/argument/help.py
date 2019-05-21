@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-$ help.py --help  # returncode=100
+$ help.py --help
 > usage: help.py [--arg ARG] [-h]
 >
 > optional arguments:
