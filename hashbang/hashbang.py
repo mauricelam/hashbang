@@ -203,12 +203,12 @@ class Argument:
 
         return argument
 
-    def apply_hashbang_extension(self, hashbang_cmd):
+    def apply_hashbang_extension(self, cmd):
         if self.name is None:
             raise RuntimeError('Name must be defined for Argument used in '
                                'decorators')
-        hashbang_cmd.arguments[self.name] = (
-                hashbang_cmd.signature.parameters[self.name], self)
+        cmd.arguments[self.name] = (
+                cmd.signature.parameters[self.name], self)
 
 
 def _default_return_value_processor(val):
@@ -259,6 +259,10 @@ class HashbangCommand:
         args = []
         kwargs = {}
         for argname, (param, argument) in self.arguments.items():
+            if param is None:
+                # Ignore params that doesn't exist in the signature (added by
+                # extensions)
+                continue
             name = argname
             value = opts.get(name, None)
             if argument.remainder:
