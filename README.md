@@ -573,5 +573,9 @@ $ cp.py LICENSE
 
 </details>
 
-Exit code
----------
+Exit codes
+----------
+
+Just like normal Python programs, the preferred way to set an exit code is using `sys.exit()`. By default, exit code `0` is returned for functions that run without raising an exception, or printed a help message with `help`. If a function raises an exception, the result code is `1`. If a function quits with `sys.exit()`, the exit code of is preserved.
+
+In addition, you can also call `sys.exit()` inside the `exception_handler` if you want to return different exit codes based on the exception that was thrown. See `tests/extension/custom_exit_codes.py` for an example.
