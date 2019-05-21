@@ -244,7 +244,8 @@ class HashbangCommand:
         self.exception_handler = _default_exception_handler
 
         for key, value in kwargs.items():
-            if key in ['prog', 'return_value_processor', 'exception_handler']:
+            if (key not in ['func', 'signature', 'parser', 'extensions']
+                    and hasattr(self, key)):
                 setattr(self, key, value)
             else:
                 raise RuntimeError(
