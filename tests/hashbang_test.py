@@ -22,6 +22,8 @@ TEST_GLOBS = [
     (TEST_DIR/'argument').glob('*.py'),
     (TEST_DIR/'delegate').glob('*.py'),
     (TEST_DIR/'extension').glob('*.py'),
+    (TEST_DIR/'misc').glob('*.py'),
+    (TEST_DIR/'regression').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
 
