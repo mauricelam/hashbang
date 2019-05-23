@@ -155,12 +155,8 @@ class Argument:
                     help=self.help,
                     type=self.type)
         elif param.kind is Parameter.KEYWORD_ONLY:
-            names = ['--' + name]
-            nonames = ['--no' + name]
-            if self.aliases:
-                names += [
-                    ('-' if len(i) == 1 else '--') + i for i in self.aliases]
-                nonames += ['--no' + i for i in self.aliases]
+            names = self.get_flag_names(name)
+            nonames = self.get_negative_flag_names(name)
             if type(param.default) is bool:
                 if self.choices is not None:
                     raise RuntimeError(
@@ -199,6 +195,27 @@ class Argument:
                 'Unsupported kind of argument ' + str(param.kind))
 
         return argument
+
+    def get_flag_names(self, name):
+        '''
+        Return a list of names to use when this argument is used as flags.
+        '''
+        names = ['--' + name]
+        if self.aliases:
+            names += [
+                ('-' if len(i) == 1 else '--') + i for i in self.aliases]
+        return names
+
+    def get_negative_flag_names(self, name):
+        '''
+        Return a list of negative names to use when this argument is used as a
+        boolean flag. The default implementation adds the prefix 'no' to the
+        name and all aliases
+        '''
+        nonames = ['--no' + name]
+        if self.aliases:
+            nonames += ['--no' + i for i in self.aliases]
+        return nonames
 
     def apply_hashbang_extension(self, cmd):
         if self.name is None:
@@ -436,6 +453,16 @@ class NoMatchingDelegate(Exception):
 
 
 def subcommands(*args, **kwargs):
+    '''
+    A convenience method to create a @command.delegator that delegates using
+    the given keyword arguments or pairs. For example, using
+    `git = subcommands(commit=commit_func, branch=branch_func)`, a parent
+    command "git" with "commit" and "branch" subcommands are created. When
+    `git.py commit` is executed, it will call `commit_func.execute(...)` with
+    all the remaining arguments. `commit_func` and `branch_func` should also be
+    a @command.
+    '''
+
     if sys.version_info >= (3, 6):
         # On Python 3.6 or above, kwargs are sorted (PEP 468)
         cmds = OrderedDict(args or kwargs)
