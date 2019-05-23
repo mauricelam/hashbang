@@ -22,7 +22,6 @@ TEST_GLOBS = [
     (TEST_DIR/'argument').glob('*.py'),
     (TEST_DIR/'delegate').glob('*.py'),
     (TEST_DIR/'extension').glob('*.py'),
-    (TEST_DIR/'misc').glob('*.py'),
     (TEST_DIR/'regression').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
@@ -73,6 +72,12 @@ class Test(unittest.TestCase):
                             print('argcomplete not installed. '
                                   'Skipping completion test', file=sys.stderr)
                             continue
+                    minpython = doctest.get_config('minpython', '3.0')
+                    minpython = tuple(int(i) for i in minpython.split('.'))
+                    if sys.version_info < minpython:
+                        print('Skipping test because minpythonversion not met',
+                              file=sys.stderr)
+                        continue
 
                     with self.subTest(
                                 testfile=doctest.testfile,

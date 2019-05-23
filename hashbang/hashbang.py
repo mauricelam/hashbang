@@ -25,9 +25,6 @@ class _CommandParser(argparse.ArgumentParser):
 
     parse_known = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def add_argument(self, *args, **kwargs):
         return super().add_argument(*args, **kwargs)
 
@@ -239,12 +236,16 @@ class HashbangCommand:
 
         # Modifiable by extensions
         self.arguments = {}
-        self.prog = None
+        self.argparse_kwargs = {}
+
+        # Modifiable by extensions and via kwargs
         self.return_value_processor = _default_return_value_processor
         self.exception_handler = _default_exception_handler
 
         for key, value in kwargs.items():
-            if (key not in ['func', 'signature', 'parser', 'extensions']
+            if key in ['prog', 'formatter_class', 'allow_abbrev']:
+                self.argparse_kwargs[key] = value
+            elif (key in ['return_value_processor', 'exception_handler']
                     and hasattr(self, key)):
                 setattr(self, key, value)
             else:
@@ -304,13 +305,13 @@ class HashbangCommand:
         sys.exit(1)
 
     def _create_parser(self, args, partial=False):
-        if self.prog is None and args is not None:
+        if 'prog' not in self.argparse_kwargs and args is not None:
             # Try to create a sensible default for prog name
             argv = sys.argv
             argv[0] = Path(argv[0]).name
             guess_prog = ' '.join(arg for arg in argv
                                   if arg not in (list(args) + ['--']))
-            self.prog = guess_prog
+            self.argparse_kwargs['prog'] = guess_prog
 
         # Parse the description and usage from the docstring
         doc = inspect.getdoc(self.func)
@@ -336,10 +337,10 @@ class HashbangCommand:
             extension.apply_hashbang_extension(self)
 
         self.parser = _CommandParser(
-            prog=self.prog,
             description=description,
             usage=usage,
-            add_help=False)
+            add_help=False,
+            **self.argparse_kwargs)
 
         for name, (param, argument) in self.arguments.items():
             retargument = argument.add_argument(
