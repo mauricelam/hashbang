@@ -4,9 +4,9 @@
 $ abbrev.py --o
 one=True two=False three=False
 
-$ abbrev.py --t  # returncode=2 stderr=True
+$ abbrev.py --t  # returncode=2 stderr=True glob=True
 usage: abbrev.py [--one] [--two] [--three] [-h]
-abbrev.py: error: ambiguous option: --t could match --two, --three
+abbrev.py: error: ambiguous option: --t could match --*
 
 $ abbrev.py --tw --thr
 one=False two=True three=True
