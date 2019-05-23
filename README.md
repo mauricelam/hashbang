@@ -26,8 +26,8 @@ python3 -m pip install hashbang[completion]
 
 This will also include [argcomplete](https://github.com/kislyuk/argcomplete) which powers the autocomplete for hashbang. The completion feature is optional; if you would like to exclude it, install using `pip install hashbang`.
 
-Examples
---------
+Quick Start Examples
+--------------------
 
 Let's start with some examples.
 
