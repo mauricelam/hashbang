@@ -16,8 +16,8 @@ class PlusArgument(Argument):
         super().__init__(*arg, **kwargs)
 
     def get_flag_names(self, name):
-        return ['++' + name] + [
-                ('+' if len(i) == 1 else '++') + i for i in self.aliases]
+        return ['++' + name] + [('+' if len(i) == 1 else '++') + i
+                                for i in self.aliases]
 
     def get_negative_flag_names(self, name):
         return ['++no' + name] + ['++no' + i for i in self.aliases]

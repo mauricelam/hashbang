@@ -200,11 +200,8 @@ class Argument:
         '''
         Return a list of names to use when this argument is used as flags.
         '''
-        names = ['--' + name]
-        if self.aliases:
-            names += [
-                ('-' if len(i) == 1 else '--') + i for i in self.aliases]
-        return names
+        return ['--' + name] + [('-' if len(i) == 1 else '--') + i
+                                for i in self.aliases]
 
     def get_negative_flag_names(self, name):
         '''
@@ -212,10 +209,7 @@ class Argument:
         boolean flag. The default implementation adds the prefix 'no' to the
         name and all aliases
         '''
-        nonames = ['--no' + name]
-        if self.aliases:
-            nonames += ['--no' + i for i in self.aliases]
-        return nonames
+        return ['--no' + name] + ['--no' + i for i in self.aliases]
 
     def apply_hashbang_extension(self, cmd):
         if self.name is None:
