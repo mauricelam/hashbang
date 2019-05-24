@@ -21,11 +21,11 @@ def add_argument(argument, argparse_argument):
             completer = argcomplete.completers.\
                         ChoicesCompleter(argument.choices)
         if completer is not None:
-            validator = argument.validator or prefix_validator
+            validator = argument.completion_validator or prefix_validator
 
-            def validated(**kwargs):
+            def validated(prefix, **kwargs):
                 choices = completer(**kwargs)
-                return [c for c in choices if validator(c, kwargs['prefix'])]
+                return [c for c in choices if validator(c, prefix)]
             argparse_argument.completer = validated
 
 

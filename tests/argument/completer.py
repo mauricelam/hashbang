@@ -25,7 +25,7 @@ def main(
         file: Argument(
             aliases=('f',),
             completer=lambda **_: ('/usr/bin/env', '/usr/bin/python'),
-            validator=fuzzy_path_validator) = None):
+            completion_validator=fuzzy_path_validator) = None):
     print('arg={}'.format(arg))
 
 

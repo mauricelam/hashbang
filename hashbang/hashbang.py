@@ -38,31 +38,139 @@ class _CommandParser(argparse.ArgumentParser):
 @optionalarg
 def command(func, extensions=(), **kwargs):
     '''
-    Usage:
+    A decorator to add command line parsing functionality to the function. The
+    returned function is the same as the original one, but with the `execute`
+    function added to it. Usage example:
 
+    ```python3
     @command
     def main(arg1, *, flag1=False):
         # Do stuff
+    ```
+
+    Arguments are added according to the parameters of the wrapped function:
+
+    - Positional parameters, which are any parameter before `*` or `*args` in
+      the argument list, are interpreted as positional arguments in the parser.
+      These arguments can be required if the default values are omitted
+      (`def func(arg)`), or optional if a default value is provided
+      (`def func(arg=None)`).
+    - Variadic parameters, which are parameters in the form `*args`, are
+      interpreted as a list argument which will take all the remaining position
+      arguments when parsing from command line.
+      A special case is when the argument is named `_REMAINDER_`, or if
+      `Argument(remainder=True)` is specified. In which case, this argument
+      will be a sequence capturing all remaining arguments, including optional
+      ones (e.g. `--foo`).
+    - Keyword parameters, which are any parameter after `*` or `*args` in the
+      argument list, are interpreted as optional arguments, or sometimes known
+      as flags. By default the argument name is taken as the flag name, with
+      any trailing underscores (`_`) stripped out. For example, if the
+      parameter name is `foo`, the flag name is `--foo`.
+
+      The action of the flag varies by the type of the default value. If the
+      default value is `False`, the action will be `argparse`'s `store_true`,
+      which means the parameter's value will be `True` if `--foo` is specified,
+      or `False` otherwise. Similarly, if the default value is `True`, the
+      parameter value will be `True` unless `--nofoo` is specified. If the
+      default value is not a bool, optional argument value will be assigned to
+      the parameter. For example, `--foo bar` will set the value of `foo` to
+      `bar`.
+
+    ### API
+
+    ```python3
+    @command(*extensions,
+             prog=None, formatter_class=None, allow_abbrev=True,
+             return_value_processor=None, exception_handler=None)
+    ```
+
+    #### Keyword arguments parsed to `argparse.ArgumentParser()`
+    - `prog` - The program name as a string. This is used in the usage and help
+      messages.
+    - `formatter_class` - Formatter for the help message, which controls
+      behaviors like dedenting and string wrapping. See
+      [`argparse`](https://docs.python.org/3/library/argparse.html#formatter-class)
+      for details.
+    - `allow-abbrev` - (Python 3.5 or above only) Allows long options to be
+      abbreviated if the abbreviation is unambiguous. Default is `True`. When
+      this is `True`, the parser will perform a prefix match on flags, and if
+      there is only one match it will be treated as the flag. For example, in
+      the function `def main(*, foo, bar, baz)`, `--f` will match `--foo`,
+      whereas `--ba` will raise an exception.
+
+    #### Other keyword arguments
+    - `return_value_processor` - A callable that takes the return value of the
+      decorated function and processes it. When this is `None`, the default
+      implementation is used, which is to `print()` the result to stdout.
+
+    ```python3
+    def _default_return_value_processor(val):
+        if val is not None:
+            print(val)
+    ```
+
+    - `exception_handler` - A callable that takes the exception raised by the
+      decorated function and processes it. This method should re-raise any
+      exceptions it does not handle. When this is `None`, the default
+      implementation is used, which is to handle
+      `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
+      `KeyboardInterrupt` to print the error messages instead of printing the
+      entire stack trace.
+
+    ```python3
+    def _default_exception_handler(exception):
+        try:
+            raise exception
+        except (subprocess.CalledProcessError, RuntimeError) as e:
+            print('Error:', str(e), file=sys.stderr)
+        except NoMatchingDelegate as e:
+            print(str(e), file=sys.stderr)
+        except KeyboardInterrupt as e:
+            print('^C', file=sys.stderr)
+    ```
+
+    #### Using extensions
+
+    `@command` can also optionally take extensions as positional arguments, and
+    keyword arguments to customize the `HashbangCommand` or the parser. See
+    [Extensions](https://github.com/mauricelam/hashbang/wiki/Extensions) and
+    documentation for `HashbangCommand` below for more.
+
+    ```python3
+    @command(
+      Argument('arg', choices=('one', 'two')),
+      exception_handler=handle_exception)
+    def main(arg, *, flag=False):
+      # Do stuff
+    ```
     '''
-    func._command = HashbangCommand(func, extensions, **kwargs)
+    func._hashbang_command = HashbangCommand(func, extensions, **kwargs)
+    func.execute = func._hashbang_command.execute
     return func
 
 
 @optionalarg
 def _commanddelegator(func, extensions=(), **kwargs):
     '''
-    Usage:
+`@command.delegator` works the same way as a `@command`, but when `--help`
+or tab-completion is invoked, instead of running its own help or completion
+methods immediately, it will first try to delegate to a subcommand, so that
+a command like `git branch --help` will show the help page of `git branch`,
+not `git` itself.
 
-    @command.delegator
-    def main(arg1, *, flag1=False):
-        # Do stuff
+When implementing a delegator, the implementation must either call
+.execute() on another command, or raise NoMatchingDelegate exception. Any
+other side-effects, like printing to the terminal or writing to any files,
+are undesired.
 
-
-    If you are implementing a delegator, the implementation should either call
-    .execute() on another command, or raise NoMatchingDelegate exception. Any
-    other side-effects are undesired.
+Also see the `subcommands` function which will is a convenience function to
+create delegating commands based on key-value pairs.
     '''
-    func._command = _DelegatingHashbangCommand(func, extensions, **kwargs)
+    func._hashbang_command = _DelegatingHashbangCommand(func,
+                                                        extensions,
+                                                        **kwargs)
+    func.execute = func._hashbang_command.execute
     return func
 
 
@@ -71,14 +179,85 @@ command.delegator = _commanddelegator
 
 class Argument:
     '''
-    Usage:
+    The `Argument` class allows additional configurations to be added to the
+    argument. It can be added in one of the following two ways:
 
-    @command
-    def main(
-        arg1:Argument(...),
-        *,
-        flag1=False):
+    1. As decorator parameter
+    ```python3
+    @command(
+      Argument('arg', choices=('one', 'two')),
+      Argument('flag', aliases=('f', 'F')))
+    def main(arg, *, flag):
         # Do stuff
+    ```
+
+    As many arguments as needed can be added to the `@command` decorator, in
+    any order. Just ensure that the first argument of `Argument` matches the
+    name of the function parameter.
+
+    2. As argument annotation, as defined in
+       [PEP 3107](https://www.python.org/dev/peps/pep-3107/).
+    ```python3
+    def main(
+            arg: Argument(choices=('one', 'two')),
+            *,
+            flag: Argument(aliases=('f', 'F'))):
+        # Do stuff
+    ```
+
+    There is no behavioral difference between these two ways in hashbang. I
+    find the second way to be slightly more pleasing to the eye and reduces
+    repetition, but it may go away in future versions of Python from
+    [PEP 563](https://www.python.org/dev/peps/pep-0563/#non-typing-usage-of-annotations).
+    Hence the first way is also provided, and is the encouraged way to specify
+    `Argument` configurations.
+
+    ```python3
+    Argument(name=None, *, choices=None, completer=None, aliases=(), help=None,
+             type=None, remainder=False)
+    ```
+    - `name` - The name of the argument. This is required when using `Argument`
+      as a parameter to `@command`, and it must match the name of a parameter
+      in the decorated function. When using `Argument` as an argument
+      annotation, `name` should be omitted, and will be ignored if specified.
+    - `choices` - A sequence of strings that corresponds to the possible values
+      of the argument. This is used in both the help message and in tab
+      completion.
+    - `completer` - A callable with the keyword arguments `prefix`, `action`,
+      `parser`, and `parsed_args`. This callable should return a list of
+      possible completion values. This is only used in tab-completion.
+      - `prefix`: The prefix text of the last word before the cursor on the
+        command line. For dynamic completers, this can be used to reduce the
+        work required to generate possible completions.
+      - `action`: The `argparse.Action` instance that this completer was called
+        for.
+      - `parser`: The `argparse.ArgumentParser` instance that the action was
+        taken by.
+      - `parsed_args`: The result of argument parsing so far (the
+        `argparse.Namespace` args object normally returned by
+        `ArgumentParser.parse_args()`).
+    - `completion_validator` - A callable that takes
+      `(current_input, keyword_to_check_against)` and returns a boolean
+      indicating whether `keyword_to_check_against` should be part of the
+      completion. `current_input` is the partial word that the user tabbed on.
+      `keyword_to_check_against` is one of the choices or output from
+      `completer`. The default validator performs a simple prefix match.
+    - `aliases` - A sequence of strings that are aliases of this argument. This
+      is only applicable to optional arguments. For example, if an argument
+      `foobar` has aliases `('f', 'eggspam')`, then `--foobar`, `-f`, and
+      `--eggspam` will all do the same thing. Notice that if an alias is only
+      one character, only one dash is added before it.
+    - `help` - The string help message for this argument.
+    - `type` - A callable takes a single string input from command line, and
+      returns the converted value. A common usage is to use `int` or `float` to
+      convert to the desired type. `argparse.FileType` can also be used here.
+      This can also be used to validate the input, but raising an exception if
+      the input doesn't match expectations.
+    - `remainder` - Boolean indicating whether this is argument should capture
+      all remainders from command line, including unparsed optional arguments.
+      This is applicable only to the var positional argument `*arg`. Default
+      value is `False`, unless the argument is named `_REMAINDER_`, in which
+      case remainder is `True`.
     '''
 
     def __init__(
@@ -87,11 +266,11 @@ class Argument:
             *,
             choices=None,
             completer=None,
+            completion_validator=None,
             aliases=(),
             help=None,
             type=None,
-            remainder=False,
-            validator=None):
+            remainder=False):
         self.name = name
         self.choices = choices
         self.completer = completer
@@ -99,7 +278,7 @@ class Argument:
         self.help = help
         self.type = type
         self.remainder = remainder
-        self.validator = validator
+        self.completion_validator = completion_validator
 
     def add_argument(self, parser, argname, param, *, partial=False):
         argument = None
@@ -236,17 +415,63 @@ def _default_exception_handler(exception):
 
 
 class HashbangCommand:
+    '''
+    When a function is decorated with `@command`, a `HashbangCommand` is
+    created to inspect its function signature, generating the parser, and
+    eventually executing the parsing. Its operations are transparent to the
+    regular user, but its APIs are useful for developing extensions.
+
+    `HashbangCommand` has the following attributes which extensions can use
+    to customize the command's behavior:
+    - `arguments` - An ordered dictionary of the arguments to add to the
+      `argparse` parser. The order of the arguments should match the order
+      in which they are declared in the function. The order is preserved in the
+      help message.
+
+      The keys of the map are the function names, whereas the values are a
+      pair `(param, argument)`. `param` is the `inspect.Parameter` object,
+      which can be `None` if the argument doesn't correspond to any parameter
+      (i.e. injected by an extension). `argument` is an instance of `Argument`
+      which is responsible for calling `add_argument` to the `argparse` parser.
+    - `argparse_kwargs` - a dict of keyword arguments to add to the constructor
+      `argparse.ArgumentParser`.
+    - `return_value_processor` - A callable that takes the return value of the
+      decorated function and processes it. When this is `None`, the default
+      implementation is used, which is to `print()` the result to stdout.
+    - `exception_handler` - A callable that takes the exception raised by the
+      decorated function and processes it. This method should re-raise any
+      exceptions it does not handle. When this is `None`, the default
+      implementation is used, which is to handle
+      `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
+      `KeyboardInterrupt` to print the error messages instead of printing the
+      entire stack trace.
+
+    In addition, the following read-only fields are also available to allow
+    extensions to get context on the function this command is running on:
+    - `func` - The decorated function
+    - `signature` - The `inspect.Signature` object created by inspecting
+      `func`.
+    - `extensions` - The list of extensions applied to this command.
+
+    ### Implementing an extension
+
+    Extensions are regular objects implementing the function
+    `apply_hashbang_extension(hashbang_cmd)`. This function is called after
+    all the information from the decorated function has been gathered,
+    before creating the `argparse.ArgumentParser`. Extensions are expected to
+    modify one the of attributes described above to modify the behavior of the
+    command.
+    '''
 
     def __init__(self, func, extensions=(), **kwargs):
         # Read only by extensions (not enforced)
         self.func = func
-        self.func.execute = self.execute
         self.signature = inspect.signature(func)
         self.parser = None
         self.extensions = extensions
 
         # Modifiable by extensions
-        self.arguments = {}
+        self.arguments = OrderedDict()
         self.argparse_kwargs = {}
 
         # Modifiable by extensions and via kwargs
@@ -336,7 +561,7 @@ class HashbangCommand:
         self.arguments = OrderedDict(
             (argname, (
                 param,
-                param.annotation if param.annotation is not Parameter.empty
+                param.annotation if isinstance(param.annotation, Argument)
                 else Argument()))
             for argname, param in self.signature.parameters.items())
 
@@ -441,6 +666,10 @@ class _DelegatingHashbangCommand(HashbangCommand):
 
 
 class NoMatchingDelegate(Exception):
+    '''
+    An exception that should be raised when implementing a `@command.delegator`
+    when a matching delegator could not be found.
+    '''
 
     def __init__(self, msg='No matching delegate'):
         super().__init__(msg)
@@ -448,13 +677,13 @@ class NoMatchingDelegate(Exception):
 
 def subcommands(*args, **kwargs):
     '''
-    A convenience method to create a @command.delegator that delegates using
+    A convenience method to create a `@command.delegator` that delegates using
     the given keyword arguments or pairs. For example, using
     `git = subcommands(commit=commit_func, branch=branch_func)`, a parent
     command "git" with "commit" and "branch" subcommands are created. When
     `git.py commit` is executed, it will call `commit_func.execute(...)` with
     all the remaining arguments. `commit_func` and `branch_func` should also be
-    a @command.
+    a `@command`.
     '''
 
     if sys.version_info >= (3, 6):

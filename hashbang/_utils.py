@@ -9,7 +9,7 @@ def optionalarg(decorator):
     '''
     @functools.wraps(decorator)
     def __decorator(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
+        if len(args) == 1 and callable(args[0]) and not kwargs:
             # Execute the decorator immediately
             func = args[0]
             return decorator(func, **kwargs)

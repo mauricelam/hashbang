@@ -22,7 +22,7 @@ from hashbang import command, Argument, fuzzy_path_validator
     Argument('file',
              aliases=('f',),
              completer=lambda **_: ('/usr/bin/env', '/usr/bin/python'),
-             validator=fuzzy_path_validator))
+             completion_validator=fuzzy_path_validator))
 def main(*, arg='one', file=None):
     print('arg={}'.format(arg))
 
