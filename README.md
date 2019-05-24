@@ -26,8 +26,8 @@ python3 -m pip install hashbang[completion]
 
 This will also include [argcomplete](https://github.com/kislyuk/argcomplete) which powers the autocomplete for hashbang. The completion feature is optional; if you would like to exclude it, install using `pip install hashbang`.
 
-Examples
---------
+Quick Start Examples
+--------------------
 
 Let's start with some examples.
 
@@ -399,18 +399,16 @@ optional arguments:
   
 </details>
 
-Argument annotation
--------------------
+Argument customization
+----------------------
 
-An argument can be further customized using the argument annotation defined in [PEP 3107](https://www.python.org/dev/peps/pep-3107/).
+An argument can be further customized using the `Argument` class in the `@command` decorator.
 
 For example, an alias can be added to the argument.
 
 ```python3
-@command
-def echo(
-    *message,
-    trailing_newline: Argument(aliases=('n',)) = True):
+@command(Argument('trailing_newline', aliases=('n',))
+def echo(*message, trailing_newline=True):
   print(' '.join(message), end=('\n' if trailing_newline else ''))
 ```
 
@@ -433,7 +431,19 @@ Hello world.
 
 </details>
 
-#### Argument constructor
+<details><summary>Alternatively, you can also choose to specify the <code>Argument</code> using argument annotation syntax defined in <a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.</summary>
+
+```python3
+@command
+def echo(
+    *message,
+    trailing_newline: Argument(aliases=('n',)) = True):
+  print(' '.join(message), end=('\n' if trailing_newline else ''))
+```
+
+</details>
+
+#### Argument API
 
 ```python3
 Argument(*, choices=None, completer=None, aliases=(), help=None, type=None, remainder=False)
