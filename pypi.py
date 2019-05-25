@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from hashbang import command
+from hashbang import command, Argument
 from pathlib import Path
 
 import subprocess
@@ -19,10 +19,22 @@ def version_bump(current_version, bump):
     return '.'.join(parts)
 
 
-@command
+@command(
+    Argument('bump', choices=VERSION_COMPONENTS),
+    Argument('upload', help='Whether to upload the created package to PyPI'),
+    Argument('version', help='Specify the version name explicitly instead of '
+                             'bumping'),
+    Argument('git_status_check', help='Whether to check and return a failure '
+                                      'if the current git repo has unstaged, '
+                                      'untracked, or uncommitted files'))
 def main(bump=None, *, upload=True, version=None, git_status_check=True):
     '''
-    Package and upload the built artifact to PyPI
+    Package and upload a new version of Hashbang. This will bump the version
+    number, package using setuptools, upload the new files to PyPI, create a
+    git tag with the version number, and push that tag to origin.
+
+    Usage: pypi.py {major,minor,patch}
+           pypi.py --version VERSION
     '''
     if git_status_check:
         gitstatus = subprocess.check_output(['git', 'status', '--porcelain'])

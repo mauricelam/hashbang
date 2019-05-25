@@ -563,8 +563,9 @@ class HashbangCommand:
             description, usage = (None, None)
         else:
             description, usage, *_ = (
-                    re.split('usage: ', doc, flags=re.IGNORECASE) + [None]
+                    re.split('usage:', doc, flags=re.IGNORECASE) + [None]
             )
+            usage = usage.lstrip()
 
         self.arguments = OrderedDict(
             (argname, (
