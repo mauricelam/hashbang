@@ -96,12 +96,17 @@ class Test(unittest.TestCase):
                         doctest.make_assertion(self, stdout, stderr)
 
     def test_decorator(self):
-        sys.path.append('src')
         noarg = SourceFileLoader(
             'module.name',
             str(TEST_DIR/'basic'/'no_arguments.py')).load_module()
         self.assertEqual(noarg.main.__name__, 'main')
         self.assertEqual(noarg.main.__doc__, 'Function with no arguments')
+
+    def test_callable(self):
+        callabletest = SourceFileLoader(
+            'module.name',
+            str(TEST_DIR/'basic'/'callable.py')).load_module()
+        self.assertEqual(callabletest.main.attribute1, 'attr1')
 
 
 class DocTest:
