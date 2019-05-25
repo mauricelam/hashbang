@@ -24,7 +24,7 @@ __all__ = [
 class _CommandParser(argparse.ArgumentParser):
 
     parse_known = False
-    partial = False
+    delegation = False
 
     def add_argument(self, *args, **kwargs):
         return super().add_argument(*args, **kwargs)
@@ -36,7 +36,7 @@ class _CommandParser(argparse.ArgumentParser):
             return (self.parse_args(args, namespace), ())
 
     def error(self, message):
-        if self.partial:
+        if self.delegation:
             raise NoMatchingDelegate()
         else:
             super().error(message)
@@ -548,7 +548,7 @@ class HashbangCommand:
             self.exception_handler(e)
         sys.exit(1)
 
-    def _create_parser(self, args, partial=False):
+    def _create_parser(self, args, delegation=False):
         if 'prog' not in self.argparse_kwargs and args is not None:
             # Try to create a sensible default for prog name
             argv = sys.argv
@@ -565,7 +565,7 @@ class HashbangCommand:
             description, usage, *_ = (
                     re.split('usage:', doc, flags=re.IGNORECASE) + [None]
             )
-            usage = usage.lstrip()
+            usage = usage.lstrip() if usage else None
 
         self.arguments = OrderedDict(
             (argname, (
@@ -586,15 +586,15 @@ class HashbangCommand:
             usage=usage,
             add_help=False,
             **self.argparse_kwargs)
-        self.parser.partial = partial
+        self.parser.delegation = delegation
 
         for name, (param, argument) in self.arguments.items():
             retargument = argument.add_argument(self.parser, name, param)
             _completion.add_argument(argument, retargument)
         return self.parser
 
-    def _execute_partial(self, args=None):
-        self._create_parser(args, partial=True)
+    def _execute_delegation(self, args=None):
+        self._create_parser(args, delegation=True)
         parsed, remaining = self.parser.parse(args)
         func_args, func_kwargs = self._get_args(vars(parsed), remaining)
         func_args = [arg if arg is not Parameter.empty else None
@@ -603,7 +603,7 @@ class HashbangCommand:
 
     def help(self, args):
         if self.parser is None:
-            self._create_parser(args, partial=True)
+            self._create_parser(args, delegation=True)
         self.parser.print_help()
         self.parser.exit(0)
 
@@ -661,7 +661,7 @@ class _DelegatingHashbangCommand(HashbangCommand):
     def help(self, args):
         HashbangCommand.exec_mode = 'help'
         try:
-            return super()._execute_partial(args)
+            return super()._execute_delegation(args)
         except NoMatchingDelegate as e:
             return super().help(args)
         raise RuntimeError('Delegate command should call sys.exit')
@@ -669,7 +669,7 @@ class _DelegatingHashbangCommand(HashbangCommand):
     def complete(self, args):
         HashbangCommand.exec_mode = 'complete'
         try:
-            return super()._execute_partial(args)
+            return super()._execute_delegation(args)
         except NoMatchingDelegate as e:
             return super().complete(args)
 
