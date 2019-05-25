@@ -10,11 +10,12 @@ import traceback
 from inspect import Parameter
 
 __all__ = [
+    'prefix_validator',
     'fuzzy_path_validator'
 ]
 
 
-def add_argument(argument, argparse_argument):
+def _add_argument(argument, argparse_argument):
     if argcomplete is not None:
         completer = argument.completer
         if completer is None and argument.choices is not None:
@@ -29,7 +30,7 @@ def add_argument(argument, argparse_argument):
             argparse_argument.completer = validated
 
 
-def execute_complete(commandobj, args):
+def _execute_complete(commandobj, args):
     if argcomplete is None:
         return
 
@@ -83,7 +84,7 @@ def execute_complete(commandobj, args):
             debug=debug)
 
 
-def modify_parser(commandobj, parser, args):
+def _modify_parser(commandobj, parser, args):
     if argcomplete is not None:
 
         class CompletionFinder(argcomplete.CompletionFinder):

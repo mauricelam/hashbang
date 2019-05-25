@@ -14,7 +14,8 @@ $ decorator_arguments.py -f /u/b/e<TAB>
 /usr/bin/env 
 '''
 
-from hashbang import command, Argument, fuzzy_path_validator
+from hashbang import command, Argument
+from hashbang.completion import fuzzy_path_validator
 
 
 @command(

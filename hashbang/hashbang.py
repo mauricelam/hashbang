@@ -11,7 +11,7 @@ from inspect import Parameter
 from itertools import chain, islice, repeat
 from pathlib import Path
 from ._utils import optionalarg
-from . import _completion
+from . import completion
 
 __all__ = [
     'command',
@@ -590,7 +590,7 @@ class HashbangCommand:
 
         for name, (param, argument) in self.arguments.items():
             retargument = argument.add_argument(self.parser, name, param)
-            _completion.add_argument(argument, retargument)
+            completion._add_argument(argument, retargument)
         return self.parser
 
     def _execute_delegation(self, args=None):
@@ -608,7 +608,7 @@ class HashbangCommand:
         self.parser.exit(0)
 
     def complete(self, args):
-        return _completion.execute_complete(self, args)
+        return completion._execute_complete(self, args)
 
     def _make_help_action(self, args):
         class HelpAction(argparse.Action):
@@ -642,7 +642,7 @@ class HashbangCommand:
                 action=self._make_help_action(args), default=argparse.SUPPRESS,
                 help='show this help message and exit')
 
-        _completion.modify_parser(self, self.parser, args)
+        completion._modify_parser(self, self.parser, args)
 
         parsed, remaining = self.parser.parse(
                 args if args is not None else sys.argv[1:])
