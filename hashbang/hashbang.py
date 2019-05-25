@@ -24,6 +24,7 @@ __all__ = [
 class _CommandParser(argparse.ArgumentParser):
 
     parse_known = False
+    partial = False
 
     def add_argument(self, *args, **kwargs):
         return super().add_argument(*args, **kwargs)
@@ -33,6 +34,12 @@ class _CommandParser(argparse.ArgumentParser):
             return self.parse_known_args(args, namespace)
         else:
             return (self.parse_args(args, namespace), ())
+
+    def error(self, message):
+        if self.partial:
+            raise NoMatchingDelegate()
+        else:
+            super().error(message)
 
 
 @optionalarg
@@ -76,6 +83,15 @@ def command(func, extensions=(), **kwargs):
       default value is not a bool, optional argument value will be assigned to
       the parameter. For example, `--foo bar` will set the value of `foo` to
       `bar`.
+
+    ```python3
+    <main>.execute(args=None)
+    ```
+
+    The `execute` method is also added to the decorated function, so it can be
+    run using `func.execute()`. This method will execute the decorated function
+    with the given command line arguments in `args`, or in `sys.argv` if `args`
+    is `None`.
 
     ### API
 
@@ -160,7 +176,7 @@ a command like `git branch --help` will show the help page of `git branch`,
 not `git` itself.
 
 When implementing a delegator, the implementation must either call
-.execute() on another command, or raise NoMatchingDelegate exception. Any
+`.execute()` on another command, or raise NoMatchingDelegate exception. Any
 other side-effects, like printing to the terminal or writing to any files,
 are undesired.
 
@@ -280,7 +296,7 @@ class Argument:
         self.remainder = remainder
         self.completion_validator = completion_validator
 
-    def add_argument(self, parser, argname, param, *, partial=False):
+    def add_argument(self, parser, argname, param):
         argument = None
         name = argname.rstrip('_')
 
@@ -294,21 +310,13 @@ class Argument:
                 param.kind is Parameter.POSITIONAL_OR_KEYWORD):
             if param.default is Parameter.empty:
                 # Most basic argument: def run(name)
-                if not partial:
-                    argument = parser.add_argument(
-                            name,
-                            choices=self.choices,
-                            help=self.help,
-                            type=self.type,
-                            nargs=None)
-                else:
-                    argument = parser.add_argument(
-                            name,
-                            nargs='?',
-                            default=None,
-                            choices=self.choices,
-                            help=self.help,
-                            type=self.type)
+                argument = parser.add_argument(
+                        name,
+                        nargs=None,
+                        default=None,
+                        choices=self.choices,
+                        help=self.help,
+                        type=self.type)
             else:
                 # Optional argument: def run(name='foo')
                 argument = parser.add_argument(
@@ -577,10 +585,10 @@ class HashbangCommand:
             usage=usage,
             add_help=False,
             **self.argparse_kwargs)
+        self.parser.partial = partial
 
         for name, (param, argument) in self.arguments.items():
-            retargument = argument.add_argument(
-                    self.parser, name, param, partial=partial)
+            retargument = argument.add_argument(self.parser, name, param)
             _completion.add_argument(argument, retargument)
         return self.parser
 

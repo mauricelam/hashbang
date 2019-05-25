@@ -3,6 +3,13 @@
 '''
 $ version.py --version
 0.1.0
+
+$ version.py --help
+> usage: version.py [--version] [-h]
+>
+> optional arguments:
+>   --version   show program's version number and exit
+>   -h, --help  show this help message and exit
 '''
 
 import sys

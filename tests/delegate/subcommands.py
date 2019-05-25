@@ -6,25 +6,25 @@ usage: subcommands.py [-h] {pairs,kwargs,auto}
 subcommands.py: error: the following arguments are required: subcommand
 
 $ subcommands.py --help
-> usage: subcommands.py [{pairs,kwargs,auto}]
+> usage: subcommands.py {pairs,kwargs,auto}
 >
 > positional arguments:
 >   {pairs,kwargs,auto}
 
 $ subcommands.py auto --help
-> usage: subcommands.py auto [{one,two,on1,tw2}]
+> usage: subcommands.py auto {one,two,on1,tw2}
 >
 > positional arguments:
 >   {one,two,on1,tw2}
 
 $ subcommands.py pairs --help
-> usage: subcommands.py pairs [{one,two,on1,tw2}]
+> usage: subcommands.py pairs {one,two,on1,tw2}
 >
 > positional arguments:
 >   {one,two,on1,tw2}
 
 $ subcommands.py kwargs --help  # glob=True
-> usage: subcommands.py kwargs [{*}]
+> usage: subcommands.py kwargs {*}
 >
 > positional arguments:
 >   {*}

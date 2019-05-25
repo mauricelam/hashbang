@@ -22,7 +22,7 @@ $ basic.py subcommand2 -- 123 -- --abcd
 subcommand2 arg=123 remaining=('--abcd',) flag2=False
 
 $ basic.py --help
-> usage: basic.py [--verbose] [subcommand]
+> usage: basic.py [--verbose] subcommand
 >
 > positional arguments:
 >   subcommand
@@ -31,7 +31,7 @@ $ basic.py --help
 >   --verbose
 
 $ basic.py subcommand1 --help
-> usage: basic.py subcommand1 [--flag1] [arg] [remaining [remaining ...]]
+> usage: basic.py subcommand1 [--flag1] arg [remaining [remaining ...]]
 >
 > positional arguments:
 >   arg
