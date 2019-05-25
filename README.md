@@ -1,4 +1,6 @@
-# Hashbang <a href="https://travis-ci.com/mauricelam/hashbang" target="_blank">![Build status](https://travis-ci.com/mauricelam/hashbang.svg?branch=master)</a>
+# Hashbang 
+[![Build status](https://travis-ci.com/mauricelam/hashbang.svg?branch=master)](https://travis-ci.com/mauricelam/hashbang)
+[![PyPI](https://img.shields.io/pypi/v/hashbang.svg?color=%230073b7)](https://pypi.org/project/hashbang/)
 
 Hashbang is a Python 3 library for quickly creating command-line ready scripts. In the most basic form, a simple hashbang command can be just a simple annotation. For more complex types, it relies on Python3's [keyword-only arguments](https://www.python.org/dev/peps/pep-3102/) to provide a seamless syntax for command line usage.
 
