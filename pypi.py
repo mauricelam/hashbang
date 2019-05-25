@@ -12,7 +12,7 @@ DIR = Path(__file__).parent.resolve()
 VERSION_COMPONENTS = ('major', 'minor', 'patch')
 
 
-def version_bump(current_version, bump='patch'):
+def version_bump(current_version, bump):
     parts = current_version.split('.')
     bump_index = VERSION_COMPONENTS.index(bump)
     parts[bump_index] = str(int(parts[bump_index]) + 1)
