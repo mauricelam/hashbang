@@ -50,6 +50,8 @@ def main(bump=None, *, upload=True, version=None, git_status_check=True):
             subprocess.check_call(
                 ['python3', '-m', 'twine', 'upload', 'dist/*'],
                 cwd=tempdir)
+    subprocess.check_call(['git', 'tag', '-a', version])
+    subprocess.check_call(['git', 'push', '--tags'])
 
 
 if __name__ == '__main__':
