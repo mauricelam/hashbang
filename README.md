@@ -445,18 +445,7 @@ def echo(
 
 </details>
 
-#### Argument API
-
-```python3
-Argument(*, choices=None, completer=None, aliases=(), help=None, type=None, remainder=False)
-```
-
-- `choices` – A sequence of strings representing possible values for the argument. This is used in the help message and also in tab-completion.
-- `completer` – A function that returns a sequence of possible choices for this argument. This can be used for arguments where the choices are too expensive to generate ahead of time.
-- `aliases` – A sequence of strings that are aliases of the option. If the alias has only one character, it is specified with one dash `-f`. If the alias has multiple characters, it is specified with two dashes `--foo`.
-- `help` – The help message for this argument.
-- `type` – A function that takes a string, and its return value will be used as the parameter value instead of the raw input string.
-- `remainder` – Boolean indicating whether this argument should capture all the remaining arguments. This is True by default if the argument is named `_REMAINDER_`.
+> See https://github.com/mauricelam/hashbang/wiki/API-reference#argument for the full `Argument` API.
 
 Help message
 ------------
