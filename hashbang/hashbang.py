@@ -58,32 +58,33 @@ def command(func, extensions=(), **kwargs):
 
     Arguments are added according to the parameters of the wrapped function:
 
-    - Positional parameters, which are any parameter before `*` or `*args` in
-      the argument list, are interpreted as positional arguments in the parser.
-      These arguments can be required if the default values are omitted
-      (`def func(arg)`), or optional if a default value is provided
-      (`def func(arg=None)`).
-    - Variadic parameters, which are parameters in the form `*args`, are
-      interpreted as a list argument which will take all the remaining position
-      arguments when parsing from command line.
-      A special case is when the argument is named `_REMAINDER_`, or if
-      `Argument(remainder=True)` is specified. In which case, this argument
-      will be a sequence capturing all remaining arguments, including optional
-      ones (e.g. `--foo`).
-    - Keyword parameters, which are any parameter after `*` or `*args` in the
-      argument list, are interpreted as optional arguments, or sometimes known
-      as flags. By default the argument name is taken as the flag name, with
-      any trailing underscores (`_`) stripped out. For example, if the
-      parameter name is `foo`, the flag name is `--foo`.
+    -   Positional parameters, which are any parameter before `*` or `*args` in
+        the argument list, are interpreted as positional arguments in the
+        parser.
+        These arguments can be required if the default values are omitted
+        (`def func(arg)`), or optional if a default value is provided
+        (`def func(arg=None)`).
+    -   Variadic parameters, which are parameters in the form `*args`, are
+        interpreted as a list argument which will take all the remaining
+        position arguments when parsing from command line.
+        A special case is when the argument is named `_REMAINDER_`, or if
+        `Argument(remainder=True)` is specified. In which case, this argument
+        will be a sequence capturing all remaining arguments, including
+        optional ones (e.g. `--foo`).
+    -   Keyword parameters, which are any parameter after `*` or `*args` in the
+        argument list, are interpreted as optional arguments, or sometimes
+        known as flags. By default the argument name is taken as the flag name,
+        with any trailing underscores (`_`) stripped out. For example, if the
+        parameter name is `foo`, the flag name is `--foo`.
 
-      The action of the flag varies by the type of the default value. If the
-      default value is `False`, the action will be `argparse`'s `store_true`,
-      which means the parameter's value will be `True` if `--foo` is specified,
-      or `False` otherwise. Similarly, if the default value is `True`, the
-      parameter value will be `True` unless `--nofoo` is specified. If the
-      default value is not a bool, optional argument value will be assigned to
-      the parameter. For example, `--foo bar` will set the value of `foo` to
-      `bar`.
+        The action of the flag varies by the type of the default value. If the
+        default value is `False`, the action will be `argparse`'s `store_true`,
+        which means the parameter's value will be `True` if `--foo` is
+        specified, or `False` otherwise. Similarly, if the default value is
+        `True`, the parameter value will be `True` unless `--nofoo` is
+        specified. If the default value is not a bool, optional argument value
+        will be assigned to the parameter. For example, `--foo bar` will set
+        the value of `foo` to `bar`.
 
     ```python3
     <main>.execute(args=None)
@@ -103,23 +104,24 @@ def command(func, extensions=(), **kwargs):
     ```
 
     #### Keyword arguments parsed to `argparse.ArgumentParser()`
-    - `prog` - The program name as a string. This is used in the usage and help
-      messages.
-    - `formatter_class` - Formatter for the help message, which controls
-      behaviors like dedenting and string wrapping. See
-      [`argparse`](https://docs.python.org/3/library/argparse.html#formatter-class)
-      for details.
-    - `allow-abbrev` - (Python 3.5 or above only) Allows long options to be
-      abbreviated if the abbreviation is unambiguous. Default is `True`. When
-      this is `True`, the parser will perform a prefix match on flags, and if
-      there is only one match it will be treated as the flag. For example, in
-      the function `def main(*, foo, bar, baz)`, `--f` will match `--foo`,
-      whereas `--ba` will raise an exception.
+    -   `prog` - The program name as a string. This is used in the usage and
+        help messages.
+    -   `formatter_class` - Formatter for the help message, which controls
+        behaviors like dedenting and string wrapping. See
+        [`argparse`](https://docs.python.org/3/library/argparse.html#formatter-class)
+        for details.
+    -   `allow-abbrev` - (Python 3.5 or above only) Allows long options to be
+        abbreviated if the abbreviation is unambiguous. Default is `True`. When
+        this is `True`, the parser will perform a prefix match on flags, and if
+        there is only one match it will be treated as the flag. For example, in
+        the function `def main(*, foo, bar, baz)`, `--f` will match `--foo`,
+        whereas `--ba` will raise an exception.
 
     #### Other keyword arguments
-    - `return_value_processor` - A callable that takes the return value of the
-      decorated function and processes it. When this is `None`, the default
-      implementation is used, which is to `print()` the result to stdout.
+    -   `return_value_processor` - A callable that takes the return value of
+        the decorated function and processes it. When this is `None`, the
+        default implementation is used, which is to `print()` the result to
+        stdout.
 
     ```python3
     def _default_return_value_processor(val):
@@ -127,13 +129,13 @@ def command(func, extensions=(), **kwargs):
             print(val)
     ```
 
-    - `exception_handler` - A callable that takes the exception raised by the
-      decorated function and processes it. This method should re-raise any
-      exceptions it does not handle. When this is `None`, the default
-      implementation is used, which is to handle
-      `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
-      `KeyboardInterrupt` to print the error messages instead of printing the
-      entire stack trace.
+    -   `exception_handler` - A callable that takes the exception raised by the
+        decorated function and processes it. This method should re-raise any
+        exceptions it does not handle. When this is `None`, the default
+        implementation is used, which is to handle
+        `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
+        `KeyboardInterrupt` to print the error messages instead of printing the
+        entire stack trace.
 
     ```python3
     def _default_exception_handler(exception):
@@ -238,8 +240,8 @@ class Argument:
     1. As decorator parameter
     ```python3
     @command(
-      Argument('arg', choices=('one', 'two')),
-      Argument('flag', aliases=('f', 'F')))
+        Argument('arg', choices=('one', 'two')),
+        Argument('flag', aliases=('f', 'F')))
     def main(arg, *, flag):
         # Do stuff
     ```
@@ -269,48 +271,49 @@ class Argument:
     Argument(name=None, *, choices=None, completer=None, aliases=(), help=None,
              type=None, remainder=False)
     ```
-    - `name` - The name of the argument. This is required when using `Argument`
-      as a parameter to `@command`, and it must match the name of a parameter
-      in the decorated function. When using `Argument` as an argument
-      annotation, `name` should be omitted, and will be ignored if specified.
-    - `choices` - A sequence of strings that corresponds to the possible values
-      of the argument. This is used in both the help message and in tab
-      completion.
-    - `completer` - A callable with the keyword arguments `prefix`, `action`,
-      `parser`, and `parsed_args`. This callable should return a list of
-      possible completion values. This is only used in tab-completion.
-      - `prefix`: The prefix text of the last word before the cursor on the
-        command line. For dynamic completers, this can be used to reduce the
-        work required to generate possible completions.
-      - `action`: The `argparse.Action` instance that this completer was called
-        for.
-      - `parser`: The `argparse.ArgumentParser` instance that the action was
-        taken by.
-      - `parsed_args`: The result of argument parsing so far (the
-        `argparse.Namespace` args object normally returned by
-        `ArgumentParser.parse_args()`).
-    - `completion_validator` - A callable that takes
-      `(current_input, keyword_to_check_against)` and returns a boolean
-      indicating whether `keyword_to_check_against` should be part of the
-      completion. `current_input` is the partial word that the user tabbed on.
-      `keyword_to_check_against` is one of the choices or output from
-      `completer`. The default validator performs a simple prefix match.
-    - `aliases` - A sequence of strings that are aliases of this argument. This
-      is only applicable to optional arguments. For example, if an argument
-      `foobar` has aliases `('f', 'eggspam')`, then `--foobar`, `-f`, and
-      `--eggspam` will all do the same thing. Notice that if an alias is only
-      one character, only one dash is added before it.
-    - `help` - The string help message for this argument.
-    - `type` - A callable takes a single string input from command line, and
-      returns the converted value. A common usage is to use `int` or `float` to
-      convert to the desired type. `argparse.FileType` can also be used here.
-      This can also be used to validate the input, but raising an exception if
-      the input doesn't match expectations.
-    - `remainder` - Boolean indicating whether this is argument should capture
-      all remainders from command line, including unparsed optional arguments.
-      This is applicable only to the var positional argument `*arg`. Default
-      value is `False`, unless the argument is named `_REMAINDER_`, in which
-      case remainder is `True`.
+    -   `name` - The name of the argument. This is required when using
+        `Argument` as a parameter to `@command`, and it must match the name of
+        a parameter in the decorated function. When using `Argument` as an
+        argument annotation, `name` should be omitted, and will be ignored if
+        specified.
+    -   `choices` - A sequence of strings that corresponds to the possible
+        values of the argument. This is used in both the help message and in
+        tab completion.
+    -   `completer` - A callable with the keyword arguments `prefix`, `action`,
+        `parser`, and `parsed_args`. This callable should return a list of
+        possible completion values. This is only used in tab-completion.
+        -   `prefix`: The prefix text of the last word before the cursor on the
+            command line. For dynamic completers, this can be used to reduce
+            the work required to generate possible completions.
+        -   `action`: The `argparse.Action` instance that this completer was
+            called for.
+        -   `parser`: The `argparse.ArgumentParser` instance that the action
+            was taken by.
+        -   `parsed_args`: The result of argument parsing so far (the
+            `argparse.Namespace` args object normally returned by
+            `ArgumentParser.parse_args()`).
+    -   `completion_validator` - A callable that takes
+        `(current_input, keyword_to_check_against)` and returns a boolean
+        indicating whether `keyword_to_check_against` should be part of the
+        completion. `current_input` is the partial word that the user tabbed
+        on. `keyword_to_check_against` is one of the choices or output from
+        `completer`. The default validator performs a simple prefix match.
+    -   `aliases` - A sequence of strings that are aliases of this argument.
+        This is only applicable to optional arguments. For example, if an
+        argument `foobar` has aliases `('f', 'eggspam')`, then `--foobar`,
+        `-f`, and `--eggspam` will all do the same thing. Notice that if an
+        alias is only one character, only one dash is added before it.
+    -   `help` - The string help message for this argument.
+    -   `type` - A callable takes a single string input from command line, and
+        returns the converted value. A common usage is to use `int` or `float`
+        to convert to the desired type. `argparse.FileType` can also be used
+        here. This can also be used to validate the input, but raising an
+        exception if the input doesn't match expectations.
+    -   `remainder` - Boolean indicating whether this is argument should
+        capture all remainders from command line, including unparsed optional
+        arguments. This is applicable only to the var positional argument
+        `*arg`. Default value is `False`, unless the argument is named
+        `_REMAINDER_`, in which case remainder is `True`.
     '''
 
     def __init__(
@@ -323,6 +326,7 @@ class Argument:
             aliases=(),
             help=None,
             type=None,
+            required=False,
             remainder=False):
         self.name = name
         self.choices = choices
@@ -331,6 +335,7 @@ class Argument:
         self.help = help
         self.type = type
         self.remainder = remainder
+        self.required = required
         self.completion_validator = completion_validator
 
     def add_argument(self, parser, argname, param):
@@ -468,39 +473,41 @@ class HashbangCommand:
 
     `HashbangCommand` has the following attributes which extensions can use
     to customize the command's behavior:
-    - `arguments` - An ordered dictionary of the arguments to add to the
-      `argparse` parser. The order of the arguments should match the order
-      in which they are declared in the function. The order is preserved in the
-      help message.
+    -   `arguments` - An ordered dictionary of the arguments to add to the
+        `argparse` parser. The order of the arguments should match the order
+        in which they are declared in the function. The order is preserved in
+        the help message.
 
-      The keys of the map are the function names, whereas the values are a
-      pair `(param, argument)`. `param` is the `inspect.Parameter` object,
-      which can be `None` if the argument doesn't correspond to any parameter
-      (i.e. injected by an extension). `argument` is an instance of `Argument`
-      which is responsible for calling `add_argument` to the `argparse` parser.
-    - `argparse_kwargs` - a dict of keyword arguments to add to the constructor
-      `argparse.ArgumentParser`.
-    - `return_value_processor` - A callable that takes the return value of the
-      decorated function and processes it. When this is `None`, the default
-      implementation is used, which is to `print()` the result to stdout.
-    - `exception_handler` - A callable that takes the exception raised by the
-      decorated function and processes it. This method should re-raise any
-      exceptions it does not handle. When this is `None`, the default
-      implementation is used, which is to handle
-      `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
-      `KeyboardInterrupt` to print the error messages instead of printing the
-      entire stack trace.
-    - `default_values` - A dictionary of default values to be used, if the user
-      did not supply a corresponding value from command line. To ensure
-      extension operability, you should update or insert the dictionary with
-      your values, rather than replacing the entire dictionary.
+        The keys of the map are the function names, whereas the values are a
+        pair `(param, argument)`. `param` is the `inspect.Parameter` object,
+        which can be `None` if the argument doesn't correspond to any parameter
+        (i.e. injected by an extension). `argument` is an instance of
+        `Argument` which is responsible for calling `add_argument` to the
+        `argparse` parser.
+    -   `argparse_kwargs` - a dict of keyword arguments to add to the
+        constructor `argparse.ArgumentParser`.
+    -   `return_value_processor` - A callable that takes the return value of
+        the decorated function and processes it. When this is `None`, the
+        default implementation is used, which is to `print()` the result to
+        stdout.
+    -   `exception_handler` - A callable that takes the exception raised by the
+        decorated function and processes it. This method should re-raise any
+        exceptions it does not handle. When this is `None`, the default
+        implementation is used, which is to handle
+        `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
+        `KeyboardInterrupt` to print the error messages instead of printing the
+        entire stack trace.
+    -   `default_values` - A dictionary of default values to be used, if the
+        user did not supply a corresponding value from command line. To ensure
+        extension operability, you should update or insert the dictionary with
+        your values, rather than replacing the entire dictionary.
 
     In addition, the following read-only fields are also available to allow
     extensions to get context on the function this command is running on:
-    - `func` - The decorated function
-    - `signature` - The `inspect.Signature` object created by inspecting
-      `func`.
-    - `extensions` - The list of extensions applied to this command.
+    -   `func` - The decorated function
+    -   `signature` - The `inspect.Signature` object created by inspecting
+        `func`.
+    -   `extensions` - The list of extensions applied to this command.
 
     ### Implementing an extension
 
