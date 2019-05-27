@@ -197,6 +197,11 @@ command.delegator = _commanddelegator
 
 
 class _StoreBooleanAction(argparse.Action):
+    '''
+    Same as argparse's store_const, but includes an extra "type" argument. This
+    is useful when set_defaults is used, where if the default is provided as a
+    string, it will pass through "type" to parse the value.
+    '''
 
     def __init__(self,
                  option_strings,
@@ -346,6 +351,11 @@ class Argument:
         if self.remainder and param.kind is not Parameter.VAR_POSITIONAL:
             raise RuntimeError('Remainder arg "{}" must be variadic (*arg)'
                                .format(argname))
+        if self.required and param.kind is not Parameter.KEYWORD_ONLY:
+            raise RuntimeError(
+                '"required" does not apply to positional arguments. Specify a '
+                'default value if you want optional positional args.\n'
+                'e.g. def func(foo=123)')
 
         # Add arguments
         if (param.kind is Parameter.POSITIONAL_ONLY or
@@ -392,17 +402,22 @@ class Argument:
                             'Choices cannot be specified for boolean flag "{}"'
                             .format(argname))
 
+                arg_adder = parser
+                if self.required:
+                    arg_adder = parser.add_mutually_exclusive_group(
+                        required=self.required)
+
                 # Flag to store true or false:
                 #   def run(*, wipe=True, verbose=False)
                 # Generates --wipe and --nowipe
-                argument = parser.add_argument(
+                argument = arg_adder.add_argument(
                     *names,
                     action=_StoreTrueAction,
                     default=param.default,
                     dest=argname,
                     help=self.help)
 
-                argument = parser.add_argument(
+                argument = arg_adder.add_argument(
                     *nonames,
                     action=_StoreFalseAction,
                     dest=argname,
@@ -418,7 +433,8 @@ class Argument:
                     dest=argname,
                     choices=self.choices,
                     help=self.help,
-                    type=self.type)
+                    type=self.type,
+                    required=self.required)
         else:
             raise Exception(
                 'Unsupported kind of argument ' + str(param.kind))
