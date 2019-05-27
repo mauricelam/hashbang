@@ -22,6 +22,7 @@ TEST_GLOBS = [
     (TEST_DIR/'argument').glob('*.py'),
     (TEST_DIR/'delegate').glob('*.py'),
     (TEST_DIR/'extension').glob('*.py'),
+    (TEST_DIR/'experimental').glob('*.py'),
     (TEST_DIR/'regression').glob('*.py'),
 ]
 TEST_FILES = [file for glob in TEST_GLOBS for file in list(glob)]
@@ -105,7 +106,7 @@ class Test(unittest.TestCase):
     def test_callable(self):
         callabletest = SourceFileLoader(
             'module.name',
-            str(TEST_DIR/'basic'/'callable.py')).load_module()
+            str(TEST_DIR/'experimental'/'callable.py')).load_module()
         self.assertEqual(callabletest.main.attribute1, 'attr1')
 
 

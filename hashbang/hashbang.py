@@ -1,4 +1,5 @@
 import argparse
+import functools
 import inspect
 import os
 import re
@@ -155,38 +156,38 @@ def command(func, extensions=(), **kwargs):
 
     ```python3
     @command(
-      Argument('arg', choices=('one', 'two')),
-      exception_handler=handle_exception)
+        Argument('arg', choices=('one', 'two')),
+        exception_handler=handle_exception)
     def main(arg, *, flag=False):
-      # Do stuff
+        # Do stuff
     ```
     '''
-    func._hashbang_command = HashbangCommand(func, extensions, **kwargs)
-    func.execute = func._hashbang_command.execute
+    cmd = HashbangCommand(func, extensions, **kwargs)
+    func._hashbang_command = cmd
+    func.execute = cmd.execute
     return func
 
 
 @optionalarg
 def _commanddelegator(func, extensions=(), **kwargs):
     '''
-`@command.delegator` works the same way as a `@command`, but when `--help`
-or tab-completion is invoked, instead of running its own help or completion
-methods immediately, it will first try to delegate to a subcommand, so that
-a command like `git branch --help` will show the help page of `git branch`,
-not `git` itself.
+    `@command.delegator` works the same way as a `@command`, but when `--help`
+    or tab-completion is invoked, instead of running its own help or completion
+    methods immediately, it will first try to delegate to a subcommand, so that
+    a command like `git branch --help` will show the help page of `git branch`,
+    not `git` itself.
 
-When implementing a delegator, the implementation must either call
-`.execute()` on another command, or raise NoMatchingDelegate exception. Any
-other side-effects, like printing to the terminal or writing to any files,
-are undesired.
+    When implementing a delegator, the implementation must either call
+    `.execute()` on another command, or raise NoMatchingDelegate exception. Any
+    other side-effects, like printing to the terminal or writing to any files,
+    are undesired.
 
-Also see the `subcommands` function which will is a convenience function to
-create delegating commands based on key-value pairs.
+    Also see the `subcommands` function which will is a convenience function to
+    create delegating commands based on key-value pairs.
     '''
-    func._hashbang_command = _DelegatingHashbangCommand(func,
-                                                        extensions,
-                                                        **kwargs)
-    func.execute = func._hashbang_command.execute
+    cmd = _DelegatingHashbangCommand(func, extensions, **kwargs)
+    func._hashbang_command = cmd
+    func.execute = cmd.execute
     return func
 
 
