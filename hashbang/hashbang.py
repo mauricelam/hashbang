@@ -273,8 +273,9 @@ class Argument:
     `Argument` configurations.
 
     ```python3
-    Argument(name=None, *, choices=None, completer=None, aliases=(), help=None,
-             type=None, remainder=False)
+    Argument(name=None, *, choices=None, completer=None, aliases=(),
+             append=False, help=None, type=None, required=False,
+             remainder=False)
     ```
     -   `name` - The name of the argument. This is required when using
         `Argument` as a parameter to `@command`, and it must match the name of
@@ -308,12 +309,22 @@ class Argument:
         argument `foobar` has aliases `('f', 'eggspam')`, then `--foobar`,
         `-f`, and `--eggspam` will all do the same thing. Notice that if an
         alias is only one character, only one dash is added before it.
+    -   `append` - Whether to append the given arguments to a list instead of
+        overwriting the value. For example, `--val foobar --val eggspam` will
+        create the value `val=['foobar', 'eggspam']`. The default value of this
+        argument should be empty tuple `()` in most typical cases. Non-empty
+        default values are not allowed to avoid the surprising behavior
+        described in https://bugs.python.org/issue16399.
     -   `help` - The string help message for this argument.
     -   `type` - A callable takes a single string input from command line, and
         returns the converted value. A common usage is to use `int` or `float`
         to convert to the desired type. `argparse.FileType` can also be used
         here. This can also be used to validate the input, but raising an
         exception if the input doesn't match expectations.
+    -   `required` - Whether the argument is required. This is applicable only
+        to optional arguments. For boolean flags, you will need to specify
+        either `--flag` or `--noflag` in the command line. For other flags, you
+        must provide a value like `--foo bar`.
     -   `remainder` - Boolean indicating whether this is argument should
         capture all remainders from command line, including unparsed optional
         arguments. This is applicable only to the var positional argument
