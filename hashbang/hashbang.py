@@ -329,6 +329,7 @@ class Argument:
             completer=None,
             completion_validator=None,
             aliases=(),
+            append=False,
             help=None,
             type=None,
             required=False,
@@ -342,6 +343,7 @@ class Argument:
         self.remainder = remainder
         self.required = required
         self.completion_validator = completion_validator
+        self.append = append
 
     def add_argument(self, parser, argname, param):
         argument = None
@@ -424,12 +426,24 @@ class Argument:
                     default=param.default,
                     help=argparse.SUPPRESS)
             else:
+                if self.append and len(param.default) > 0:
+                    raise RuntimeError(
+                        'When "append" is true, the default value of the '
+                        'argument must be empty to avoid the surprising '
+                        'behavior described in '
+                        'https://bugs.python.org/issue16399.\n'
+                        'Instead, use `arg = arg or ("default value")` in '
+                        'your implementation.')
                 # Capture any other keyword arguments: def run(*, arg=None)
                 # e.g. prog --arg1 val1 --arg2 val2
                 argument = parser.add_argument(
                     *names,
-                    action='store',
-                    default=param.default,
+                    action='store' if not self.append else 'append',
+                    # For append arguments, argparse calls append() directly
+                    # on the default, so make sure we don't reuse the default
+                    # value, and convert to list to allow tuples as defaults
+                    default=(param.default if not self.append
+                             else list(param.default)),
                     dest=argname,
                     choices=self.choices,
                     help=self.help,
