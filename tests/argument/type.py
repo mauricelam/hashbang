@@ -16,7 +16,7 @@ from hashbang import command, Argument
 @command
 def main(*args: Argument(type=int),
          port: Argument(type=int) = 0):
-    print('args={} port={}'.format(args, port))
+    print('args={} port={}'.format(*map(repr, (args, port))))
     print('{}'.format(type(port)))
 
 

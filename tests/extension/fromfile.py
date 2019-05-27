@@ -2,13 +2,13 @@
 
 '''
 $ fromfile.py @fromfile.txt
-arg1=None arg2=two arg3=three
+arg1=None arg2='two' arg3='three'
 
 $ fromfile.py --arg1=uno @fromfile.txt --arg2=dos
-arg1=uno arg2=dos arg3=three
+arg1='uno' arg2='dos' arg3='three'
 
 $ fromfile.py --arg1=uno --arg2=dos @fromfile.txt
-arg1=uno arg2=two arg3=three
+arg1='uno' arg2='two' arg3='three'
 '''
 
 import sys
@@ -31,7 +31,7 @@ class FromFilePrefixChars:
 
 @command(FromFilePrefixChars('@'))
 def main(*, arg1=None, arg2=None, arg3=None):
-    print('arg1={} arg2={} arg3={}'.format(arg1, arg2, arg3))
+    print('arg1={} arg2={} arg3={}'.format(*map(repr, (arg1, arg2, arg3))))
 
 
 if __name__ == '__main__':

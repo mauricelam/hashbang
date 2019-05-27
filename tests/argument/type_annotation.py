@@ -2,10 +2,10 @@
 
 '''
 $ type_annotation.py
-arg=one
+arg='one'
 
 $ type_annotation.py --arg two
-arg=two
+arg='two'
 '''
 
 from hashbang import command, Argument
@@ -16,7 +16,7 @@ def main(*, arg: str = 'one'):
     '''
     Test to make sure that non-Argument annotations are ignored
     '''
-    print('arg={}'.format(arg))
+    print('arg={}'.format(repr(arg)))
 
 
 if __name__ == '__main__':

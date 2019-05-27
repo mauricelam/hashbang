@@ -10,7 +10,7 @@ from hashbang import command, Argument
 
 @command
 def main(*, flag1: Argument(choices=('a', 'b')) = False):
-    print('flag1={}'.format(flag1))
+    print('flag1={}'.format(repr(flag1)))
 
 
 if __name__ == '__main__':

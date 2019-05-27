@@ -27,7 +27,7 @@ def main(
             aliases=('f',),
             completer=lambda **_: ('/usr/bin/env', '/usr/bin/python'),
             completion_validator=fuzzy_path_validator) = None):
-    print('arg={}'.format(arg))
+    print('arg={}'.format(repr(arg)))
 
 
 if __name__ == '__main__':

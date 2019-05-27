@@ -16,7 +16,7 @@ from hashbang import command
 
 @command
 def main(*, flag1=False, flag2=True):
-    print('flag1={} flag2={}'.format(flag1, flag2))
+    print('flag1={} flag2={}'.format(*map(repr, (flag1, flag2))))
 
 
 if __name__ == '__main__':

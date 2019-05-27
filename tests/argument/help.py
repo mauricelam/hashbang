@@ -14,7 +14,7 @@ from hashbang import command, Argument
 
 @command
 def main(*, arg: Argument(help='The argument') = 'one'):
-    print('arg={}'.format(arg))
+    print('arg={}'.format(repr(arg)))
 
 
 if __name__ == '__main__':

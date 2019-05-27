@@ -20,7 +20,7 @@ from hashbang import command, Argument
 
 @command
 def main(*, arg: Argument(choices=('one', 'two', 'three')) = 'one'):
-    print('arg={}'.format(arg))
+    print('arg={}'.format(repr(arg)))
 
 
 if __name__ == '__main__':

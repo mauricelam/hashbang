@@ -19,7 +19,7 @@ def main(*, flag1_=False, flag2_=True):
     '''
     Trailing underscores should be skipped in flag names
     '''
-    print('flag1={} flag2={}'.format(flag1_, flag2_))
+    print('flag1={} flag2={}'.format(*map(repr, (flag1_, flag2_))))
 
 
 if __name__ == '__main__':

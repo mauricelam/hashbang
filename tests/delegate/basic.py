@@ -6,20 +6,20 @@ usage: basic.py [--verbose] [-h] subcommand
 basic.py: error: the following arguments are required: subcommand
 
 $ basic.py subcommand1 123 456 789
-subcommand1 arg=123 remaining=('456', '789') flag1=False
+subcommand1 arg='123' remaining=('456', '789') flag1=False
 
 $ basic.py subcommand2 345 678 9
-subcommand2 arg=345 remaining=('678', '9') flag2=False
+subcommand2 arg='345' remaining=('678', '9') flag2=False
 
 $ basic.py subcommand2 345 678 9 --verbose
 Executing subcommand2...
-subcommand2 arg=345 remaining=('678', '9') flag2=False
+subcommand2 arg='345' remaining=('678', '9') flag2=False
 
 $ basic.py nonexistent  # returncode=1 stderr=True
 No matching delegate
 
 $ basic.py subcommand2 -- 123 -- --abcd
-subcommand2 arg=123 remaining=('--abcd',) flag2=False
+subcommand2 arg='123' remaining=('--abcd',) flag2=False
 
 $ basic.py --help
 > usage: basic.py [--verbose] subcommand
@@ -48,14 +48,14 @@ from hashbang import command, Argument, NoMatchingDelegate
 def subcommand1(arg, *remaining, flag1=False):
     print(
             'subcommand1 arg={} remaining={} flag1={}'
-            .format(arg, remaining, flag1))
+            .format(*map(repr, (arg, remaining, flag1))))
 
 
 @command
 def subcommand2(arg, *remaining, flag2=False):
     print(
             'subcommand2 arg={} remaining={} flag2={}'
-            .format(arg, remaining, flag2))
+            .format(*map(repr, (arg, remaining, flag2))))
 
 
 @command.delegator

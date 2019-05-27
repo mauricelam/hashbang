@@ -9,7 +9,7 @@ For a more proper usage, consider making a proxy function, like wrap_callable
 in tests/experimental/class.py.
 
 $ callable.py aloha --flag1
-arg=aloha flag1=True
+arg='aloha' flag1=True
 '''
 
 import sys
@@ -23,7 +23,7 @@ class MyCallableClass:
         self.attribute1 = 'attr1'
 
     def __call__(self, arg, *, flag1=False):
-        print('arg={} flag1={}'.format(arg, flag1))
+        print('arg={} flag1={}'.format(*map(repr, (arg, flag1))))
 
 
 original = MyCallableClass()

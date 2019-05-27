@@ -33,7 +33,7 @@ class PlusArgument(Argument):
     PlusArgument('one'),
     PlusArgument('two', aliases=('2',)))
 def main(*, one=False, two=False, three=False):
-    print('one={} two={} three={}'.format(one, two, three))
+    print('one={} two={} three={}'.format(*map(repr, (one, two, three))))
 
 
 if __name__ == '__main__':
