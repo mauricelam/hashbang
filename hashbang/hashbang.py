@@ -454,6 +454,10 @@ class HashbangCommand:
       `subprocess.CalledProcessError`, `NoMatchingDelegate`, and
       `KeyboardInterrupt` to print the error messages instead of printing the
       entire stack trace.
+    - `default_values` - A dictionary of default values to be used, if the user
+      did not supply a corresponding value from command line. To ensure
+      extension operability, you should update or insert the dictionary with
+      your values, rather than replacing the entire dictionary.
 
     In addition, the following read-only fields are also available to allow
     extensions to get context on the function this command is running on:
@@ -482,6 +486,7 @@ class HashbangCommand:
         # Modifiable by extensions
         self.arguments = OrderedDict()
         self.argparse_kwargs = {}
+        self.default_values = {}
 
         # Modifiable by extensions and via kwargs
         self.return_value_processor = _default_return_value_processor
@@ -592,6 +597,9 @@ class HashbangCommand:
         for name, (param, argument) in self.arguments.items():
             retargument = argument.add_argument(self.parser, name, param)
             completion._add_argument(argument, retargument)
+
+        self.parser.set_defaults(**self.default_values)
+
         return self.parser
 
     def _execute_delegation(self, args=None):
