@@ -39,7 +39,7 @@ def main(*,
     Aliases are sequences, so a normal string will be split into characters
     for each alias, while multi-character aliases should use tuples.
     '''
-    print('flag1={} flag2={}'.format(flag1, flag2))
+    print('flag1={} flag2={}'.format(*map(repr, (flag1, flag2))))
 
 
 if __name__ == '__main__':

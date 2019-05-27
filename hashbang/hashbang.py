@@ -194,6 +194,42 @@ def _commanddelegator(func, extensions=(), **kwargs):
 command.delegator = _commanddelegator
 
 
+class _StoreBooleanAction(argparse.Action):
+
+    def __init__(self,
+                 option_strings,
+                 dest,
+                 const,
+                 default=None,
+                 required=False,
+                 help=None,
+                 metavar=None):
+        super().__init__(
+            option_strings=option_strings,
+            dest=dest,
+            const=const,
+            nargs=0,
+            default=default,
+            required=required,
+            type=lambda x: x == 'True',
+            help=help)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, self.const)
+
+
+class _StoreTrueAction(_StoreBooleanAction):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, const=True, **kwargs)
+
+
+class _StoreFalseAction(_StoreBooleanAction):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, const=False, **kwargs)
+
+
 class Argument:
     '''
     The `Argument` class allows additional configurations to be added to the
@@ -356,14 +392,14 @@ class Argument:
                 # Generates --wipe and --nowipe
                 argument = parser.add_argument(
                     *names,
-                    action='store_true',
+                    action=_StoreTrueAction,
                     default=param.default,
                     dest=argname,
                     help=self.help)
 
                 argument = parser.add_argument(
                     *nonames,
-                    action='store_false',
+                    action=_StoreFalseAction,
                     dest=argname,
                     default=param.default,
                     help=argparse.SUPPRESS)
