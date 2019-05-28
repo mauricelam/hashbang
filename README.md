@@ -235,6 +235,8 @@ Cheatsheet
 | Keyword-only (other default types)     | `def func(*, foo='bar')` | `command.py --foo value` | `action='store'`           |
 | Var keyword                            | `def func(**kwargs)`     | Not allowed in hashbang  |                            |
 
+See the [API reference](https://github.com/mauricelam/hashbang/wiki/API-reference) wiki page for the full APIs.
+
 Command delegation
 ------------------
 
