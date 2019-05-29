@@ -23,8 +23,17 @@ $ class.py log --help
 > optional arguments:
 >   --graph
 
+$ class.py branch
+Dry run: git branch on /path/to/pwd
 
-#### ADD TESTS FOR REGULAR USAGE
+$ class.py branch new-branch
+Dry run: git branch new-branch on /path/to/pwd
+
+$ class.py log
+Dry run: git log on /path/to/pwd
+
+$ class.py log --graph
+Dry run: git log --graph on /path/to/pwd
 '''
 
 import functools
@@ -86,7 +95,7 @@ class Repo:
         cmd = 'git branch'
         if newbranch is not None:
             cmd += ' ' + newbranch
-        return cmd + ' on ' + self.path
+        return 'Dry run: {} on {}'.format(cmd, self.path)
 
     @method_decorator(command)
     def log(self, *, graph=False):
@@ -96,7 +105,7 @@ class Repo:
         cmd = 'git log'
         if graph:
             cmd += ' --graph'
-        return cmd + ' on ' + self.path
+        return 'Dry run: {} on {}'.format(cmd, self.path)
 
 
 @command.delegator
