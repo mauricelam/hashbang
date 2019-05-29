@@ -376,7 +376,8 @@ class Argument:
             if param.default is Parameter.empty:
                 # Most basic argument: def run(name)
                 argument = parser.add_argument(
-                        name,
+                        argname,
+                        metavar=name if not self.choices else None,
                         nargs=None,
                         default=None,
                         choices=self.choices,
@@ -385,7 +386,8 @@ class Argument:
             else:
                 # Optional argument: def run(name='foo')
                 argument = parser.add_argument(
-                        name,
+                        argname,
+                        metavar=name if not self.choices else None,
                         nargs='?',
                         default=param.default,
                         choices=self.choices,
@@ -401,7 +403,8 @@ class Argument:
             else:
                 # Repeated argument: def run(*paths)
                 argument = parser.add_argument(
-                    name,
+                    argname,
+                    metavar=name if not self.choices else None,
                     nargs='*',
                     choices=self.choices,
                     help=self.help,
@@ -598,8 +601,7 @@ class HashbangCommand:
                 # Ignore params that doesn't exist in the signature (added by
                 # extensions)
                 continue
-            name = argname
-            value = opts.get(name, None)
+            value = opts.get(argname, None)
             if argument.remainder:
                 args.extend(remaining)
             elif (param.kind is Parameter.POSITIONAL_ONLY or
