@@ -1,4 +1,4 @@
 TODO:
 
 Remainder vs known args
-Add documentation for Argument.add_argument
+Use **kwargs instead of _REMAINDER_??

@@ -356,7 +356,32 @@ class Argument:
         self.completion_validator = completion_validator
         self.append = append
 
-    def add_argument(self, cmd, parser, param):
+    def add_argument(self, cmd, arg_container, param):
+        '''
+        ```python3
+        Argument.add_argument(cmd, arg_container, param)
+        ```
+
+        -   `cmd` - The `HashbangCommand` object using this argument. This can
+            be used as a vector for communication across extension instances,
+            or to retrieve values set in the prior call to
+            `apply_hashbang_command`. For example, an argument group can be
+            placed in the command object, and multiple arguments can be added
+            to the same argument group. Any fields added by the argument to
+            this `HashbangCommand` should be prefixed with `_ClassName__` to
+            avoid namespace collision.
+        -   `arg_container` - The argument container, which can be an
+            `argparse.ArgumentParser`, or the returned group of
+            `ArgumentParser.add_argument_group()` or
+            `ArgumentParser.add_mutually_exclusive_group()`. The argument
+            implementation should call
+            [`add_argument`](https://docs.python.org/3/library/argparse.html#the-add-argument-method)
+            on this parameter.
+        -   `param` - The `inspect.Parameter` object describing the parameter
+            in the Python function. This can be `None` for arguments added by
+            extensions, but is guaranteed to not be `None` for regular
+            arguments.
+        '''
         argument = None
         name = param.name.rstrip('_')
 
@@ -375,7 +400,7 @@ class Argument:
                 param.kind is Parameter.POSITIONAL_OR_KEYWORD):
             if param.default is Parameter.empty:
                 # Most basic argument: def run(name)
-                argument = parser.add_argument(
+                argument = arg_container.add_argument(
                         param.name,
                         metavar=name if not self.choices else None,
                         nargs=None,
@@ -385,7 +410,7 @@ class Argument:
                         type=self.type)
             else:
                 # Optional argument: def run(name='foo')
-                argument = parser.add_argument(
+                argument = arg_container.add_argument(
                         param.name,
                         metavar=name if not self.choices else None,
                         nargs='?',
@@ -399,10 +424,10 @@ class Argument:
             if self.remainder:
                 # Special argument that will capture any remaining entries
                 # in argv e.g. def run(*_REMAINDER_)
-                parser.parse_known = True
+                arg_container.parse_known = True
             else:
                 # Repeated argument: def run(*paths)
-                argument = parser.add_argument(
+                argument = arg_container.add_argument(
                     param.name,
                     metavar=name if not self.choices else None,
                     nargs='*',
@@ -418,22 +443,23 @@ class Argument:
                             'Choices cannot be specified for boolean flag "{}"'
                             .format(param.name))
 
-                arg_adder = parser
+                flag_arg_container = arg_container
                 if self.required:
-                    arg_adder = parser.add_mutually_exclusive_group(
-                        required=self.required)
+                    flag_arg_container = \
+                        arg_container.add_mutually_exclusive_group(
+                            required=self.required)
 
                 # Flag to store true or false:
                 #   def run(*, wipe=True, verbose=False)
                 # Generates --wipe and --nowipe
-                argument = arg_adder.add_argument(
+                argument = flag_arg_container.add_argument(
                     *names,
                     action=_StoreTrueAction,
                     default=param.default,
                     dest=param.name,
                     help=self.help)
 
-                argument = arg_adder.add_argument(
+                argument = flag_arg_container.add_argument(
                     *nonames,
                     action=_StoreFalseAction,
                     dest=param.name,
@@ -450,7 +476,7 @@ class Argument:
                         'your implementation.')
                 # Capture any other keyword arguments: def run(*, arg=None)
                 # e.g. prog --arg1 val1 --arg2 val2
-                argument = parser.add_argument(
+                argument = arg_container.add_argument(
                     *names,
                     action='store' if not self.append else 'append',
                     # For append arguments, argparse calls append() directly
