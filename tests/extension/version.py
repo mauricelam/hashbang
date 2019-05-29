@@ -29,7 +29,7 @@ class Version(Argument):
     def apply_hashbang_extension(self, cmd):
         cmd.arguments['version'] = (None, self)
 
-    def add_argument(self, parser, argname, param, *, partial=False):
+    def add_argument(self, cmd, parser, param):
         parser.add_argument(
             '--version',
             action='version',

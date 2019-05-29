@@ -356,14 +356,14 @@ class Argument:
         self.completion_validator = completion_validator
         self.append = append
 
-    def add_argument(self, parser, argname, param):
+    def add_argument(self, cmd, parser, param):
         argument = None
-        name = argname.rstrip('_')
+        name = param.name.rstrip('_')
 
         # Validation
         if self.remainder and param.kind is not Parameter.VAR_POSITIONAL:
             raise RuntimeError('Remainder arg "{}" must be variadic (*arg)'
-                               .format(argname))
+                               .format(param.name))
         if self.required and param.kind is not Parameter.KEYWORD_ONLY:
             raise RuntimeError(
                 '"required" does not apply to positional arguments. Specify a '
@@ -376,7 +376,7 @@ class Argument:
             if param.default is Parameter.empty:
                 # Most basic argument: def run(name)
                 argument = parser.add_argument(
-                        argname,
+                        param.name,
                         metavar=name if not self.choices else None,
                         nargs=None,
                         default=None,
@@ -386,7 +386,7 @@ class Argument:
             else:
                 # Optional argument: def run(name='foo')
                 argument = parser.add_argument(
-                        argname,
+                        param.name,
                         metavar=name if not self.choices else None,
                         nargs='?',
                         default=param.default,
@@ -394,7 +394,7 @@ class Argument:
                         help=self.help,
                         type=self.type)
         elif param.kind is Parameter.VAR_POSITIONAL:
-            if argname == '_REMAINDER_':
+            if param.name == '_REMAINDER_':
                 self.remainder = True
             if self.remainder:
                 # Special argument that will capture any remaining entries
@@ -403,7 +403,7 @@ class Argument:
             else:
                 # Repeated argument: def run(*paths)
                 argument = parser.add_argument(
-                    argname,
+                    param.name,
                     metavar=name if not self.choices else None,
                     nargs='*',
                     choices=self.choices,
@@ -416,7 +416,7 @@ class Argument:
                 if self.choices is not None:
                     raise RuntimeError(
                             'Choices cannot be specified for boolean flag "{}"'
-                            .format(argname))
+                            .format(param.name))
 
                 arg_adder = parser
                 if self.required:
@@ -430,13 +430,13 @@ class Argument:
                     *names,
                     action=_StoreTrueAction,
                     default=param.default,
-                    dest=argname,
+                    dest=param.name,
                     help=self.help)
 
                 argument = arg_adder.add_argument(
                     *nonames,
                     action=_StoreFalseAction,
-                    dest=argname,
+                    dest=param.name,
                     default=param.default,
                     help=argparse.SUPPRESS)
             else:
@@ -458,7 +458,7 @@ class Argument:
                     # value, and convert to list to allow tuples as defaults
                     default=(param.default if not self.append
                              else list(param.default)),
-                    dest=argname,
+                    dest=param.name,
                     choices=self.choices,
                     help=self.help,
                     type=self.type,
@@ -660,11 +660,11 @@ class HashbangCommand:
             usage = usage.lstrip() if usage else None
 
         self.arguments = OrderedDict(
-            (argname, (
+            (param.name, (
                 param,
                 param.annotation if isinstance(param.annotation, Argument)
                 else Argument()))
-            for argname, param in self.signature.parameters.items())
+            for _, param in self.signature.parameters.items())
 
         for extension in self.extensions:
             if not callable(getattr(extension, 'apply_hashbang_extension')):
@@ -681,7 +681,7 @@ class HashbangCommand:
         self.parser.delegation = delegation
 
         for name, (param, argument) in self.arguments.items():
-            retargument = argument.add_argument(self.parser, name, param)
+            retargument = argument.add_argument(self, self.parser, param)
             completion._add_argument(argument, retargument)
 
         self.parser.set_defaults(**self.default_values)
