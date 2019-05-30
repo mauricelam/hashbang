@@ -6,20 +6,33 @@ usage: basic.py [--verbose] [-h] subcommand
 basic.py: error: the following arguments are required: subcommand
 
 $ basic.py subcommand1 123 456 789
-subcommand1 arg='123' remaining=('456', '789') flag1=False
+subcommand1 arg='123' remaining=('456', '789') flag1=False verbose=False
 
 $ basic.py subcommand2 345 678 9
-subcommand2 arg='345' remaining=('678', '9') flag2=False
+subcommand2 arg='345' remaining=('678', '9') flag2=False verbose=False
 
 $ basic.py subcommand2 345 678 9 --verbose
 Executing subcommand2...
-subcommand2 arg='345' remaining=('678', '9') flag2=False
+subcommand2 arg='345' remaining=('678', '9') flag2=False verbose=False
 
 $ basic.py nonexistent  # returncode=1 stderr=True
 No matching delegate
 
 $ basic.py subcommand2 -- 123 -- --abcd
-subcommand2 arg='123' remaining=('--abcd',) flag2=False
+subcommand2 arg='123' remaining=('--abcd',) flag2=False verbose=False
+
+$ basic.py --verbose subcommand2 123
+Executing subcommand2...
+subcommand2 arg='123' remaining=() flag2=False verbose=False
+
+$ basic.py subcommand2 -- --verbose 123
+subcommand2 arg='123' remaining=() flag2=False verbose=True
+
+$ basic.py subcommand2 -- -- --verbose 123
+subcommand2 arg='--verbose' remaining=('123',) flag2=False verbose=False
+
+$ basic.py subcommand2 -- -- -- --verbose 123
+subcommand2 arg='--' remaining=('--verbose', '123') flag2=False verbose=False
 
 $ basic.py --help
 > usage: basic.py [--verbose] subcommand
@@ -31,7 +44,8 @@ $ basic.py --help
 >   --verbose
 
 $ basic.py subcommand1 --help
-> usage: basic.py subcommand1 [--flag1] arg [remaining [remaining ...]]
+> usage: basic.py subcommand1 [--flag1] [--verbose]
+>                             arg [remaining [remaining ...]]
 >
 > positional arguments:
 >   arg
@@ -39,23 +53,24 @@ $ basic.py subcommand1 --help
 >
 > optional arguments:
 >   --flag1
+>   --verbose
 '''
 
 from hashbang import command, Argument, NoMatchingDelegate
 
 
 @command
-def subcommand1(arg, *remaining, flag1=False):
+def subcommand1(arg, *remaining, flag1=False, verbose=False):
     print(
-            'subcommand1 arg={} remaining={} flag1={}'
-            .format(*map(repr, (arg, remaining, flag1))))
+            'subcommand1 arg={} remaining={} flag1={} verbose={}'
+            .format(*map(repr, (arg, remaining, flag1, verbose))))
 
 
 @command
-def subcommand2(arg, *remaining, flag2=False):
+def subcommand2(arg, *remaining, flag2=False, verbose=False):
     print(
-            'subcommand2 arg={} remaining={} flag2={}'
-            .format(*map(repr, (arg, remaining, flag2))))
+            'subcommand2 arg={} remaining={} flag2={} verbose={}'
+            .format(*map(repr, (arg, remaining, flag2, verbose))))
 
 
 @command.delegator
