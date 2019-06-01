@@ -1,7 +1,7 @@
 import setuptools
 from pathlib import Path
 
-DIR = Path(__file__).parent
+DIR = Path(__file__).resolve().parent
 README = DIR/'README.md'
 with README.open('r') as f:
     long_description = f.read()
@@ -18,7 +18,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mauricelam/hashbang",
-    packages=[str(DIR/'hashbang')],
+    packages=['hashbang'],
     test_suite="tests/hashbang_test.py",
     install_requires=[],
     extras_require={
