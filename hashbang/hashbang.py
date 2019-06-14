@@ -662,7 +662,7 @@ class HashbangCommand:
             return_value = self._execute_with_list(args=args)
             self.return_value_processor(return_value)
             sys.exit(0)
-        except Exception as e:
+        except BaseException as e:
             self.exception_handler(e)
         sys.exit(1)
 

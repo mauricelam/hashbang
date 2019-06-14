@@ -7,7 +7,7 @@ Error: runtime error
 $ error.py --error=subprocess # returncode=1 stderr=True glob=True
 Error: Command 'exit 132' returned non-zero exit status 132*
 
-$ error.py --error=custom. # returncode=1 stderr=True glob=True
+$ error.py --error=custom  # returncode=1 stderr=True glob=True
 > Traceback (most recent call last):
 >   File "error.py", *
 >     main.execute()
@@ -15,6 +15,9 @@ $ error.py --error=custom. # returncode=1 stderr=True glob=True
 >   File "error.py", *
 >     raise CustomError('custom error')
 > __main__.CustomError: custom error
+
+$ error.py --error=ctrlc  # returncode=1 stderr=True
+^C
 '''
 
 from hashbang import command
@@ -27,6 +30,8 @@ def main(*, error='runtime'):
         subprocess.check_call('exit 132', shell=True)
     elif error == 'runtime':
         raise RuntimeError('runtime error')
+    elif error == 'ctrlc':
+        raise KeyboardInterrupt()
     else:
         raise CustomError('custom error')
 
