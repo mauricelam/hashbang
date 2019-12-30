@@ -3,8 +3,6 @@
 '''
 $ nonexistent.py  # returncode=1 stderr=True glob=True
 > Traceback (most recent call last):
->   File "*nonexistent.py", line *, in <module>
->     @command(nonexistent='foobar')
 >   ...
 > RuntimeError: Command property "nonexistent" cannot be set
 '''
