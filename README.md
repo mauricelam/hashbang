@@ -229,7 +229,7 @@ Cheatsheet
 | Positional (no default value)          | `def func(foo)`          | `command.py foo`         | `nargs=None`               |
 | Positional (with default value)        | `def func(foo=None)`     | `command.py foo`         | `nargs='?'`                |
 | Var positional                         | `def func(*foo)`         | `command.py foo bar baz` | `nargs='*'`                |
-| Var positional (named `\_REMAINDER\_`) | `def func(*_REMAINDER_)` |                          | `nargs=argparse.REMAINDER` |
+| Var positional (named `_REMAINDER_`)   | `def func(*_REMAINDER_)` |                          | `nargs=argparse.REMAINDER` |
 | Keyword-only (default false)           | `def func(*, foo=False)` | `command.py --foo`       | `action='store_true'`      |
 | Keyword-only (default true)            | `def func(*, foo=True)`  | `command.py --nofoo`     | `action='store_false'`     |
 | Keyword-only (other default types)     | `def func(*, foo='bar')` | `command.py --foo value` | `action='store'`           |
