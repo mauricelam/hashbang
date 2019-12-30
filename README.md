@@ -303,7 +303,7 @@ Date:   Mon May 13 23:31:17 2019 -0700
 
 #### Custom command delegator
 
-If `subocommands` is not sufficient for your purposes, you can use the `@command.delegator` decorator. Its usage is the same as the `@command` decorator, but the implementing function must then either call `.execute(_REMAINDER_)` on another command, or raise `NoMatchingDelegate` exception.
+If `subcommands` is not sufficient for your purposes, you can use the `@command.delegator` decorator. Its usage is the same as the `@command` decorator, but the implementing function must then either call `.execute(_REMAINDER_)` on another command, or raise `NoMatchingDelegate` exception.
 
 ```python3
 @command
