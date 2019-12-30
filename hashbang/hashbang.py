@@ -330,6 +330,9 @@ class Argument:
         arguments. This is applicable only to the var positional argument
         `*arg`. Default value is `False`, unless the argument is named
         `_REMAINDER_`, in which case remainder is `True`.
+    -   `py_only` - Boolean indicating whether this argument is for Python use
+        only. If this is true, the argument will not be added to the command
+        line parser.
     '''
 
     def __init__(
@@ -344,7 +347,8 @@ class Argument:
             help=None,
             type=None,
             required=False,
-            remainder=False):
+            remainder=False,
+            py_only=False):
         self.name = name
         self.choices = choices
         self.completer = completer
@@ -355,6 +359,7 @@ class Argument:
         self.required = required
         self.completion_validator = completion_validator
         self.append = append
+        self.py_only = py_only
 
     def add_argument(self, cmd, arg_container, param):
         '''
@@ -382,6 +387,9 @@ class Argument:
             extensions, but is guaranteed to not be `None` for regular
             arguments.
         '''
+        if self.py_only:
+            return
+
         argument = None
         name = param.name.rstrip('_')
 
@@ -639,12 +647,13 @@ class HashbangCommand:
                 kwargs[argname] = value
         return (args, kwargs)
 
-    def execute(self, args=None):
-        return self._execute_mode(HashbangCommand.exec_mode, args=args)
+    def execute(self, args=None, **kwargs):
+        return self._execute_mode(
+            HashbangCommand.exec_mode, args=args, **kwargs)
 
-    def _execute_mode(self, mode, args=None):
+    def _execute_mode(self, mode, args=None, **kwargs):
         if mode == 'execute':
-            return self._execute_with_error_handling(args)
+            return self._execute_with_error_handling(args, **kwargs)
         elif mode == 'help':
             return self.help(args)
         elif mode == 'complete':
@@ -652,14 +661,14 @@ class HashbangCommand:
         else:
             raise RuntimeError('Unknown execution mode {}'.format(mode))
 
-    def _execute_with_error_handling(self, args=None):
+    def _execute_with_error_handling(self, args=None, **kwargs):
         try:
             try:
                 import setproctitle
                 setproctitle.setproctitle(sys.argv[0])
             except Exception:
                 pass
-            return_value = self._execute_with_list(args=args)
+            return_value = self._execute_with_list(args=args, **kwargs)
             self.return_value_processor(return_value)
             sys.exit(0)
         except BaseException as e:
@@ -751,12 +760,13 @@ class HashbangCommand:
 
         return HelpAction
 
-    def _execute_with_list(self, args=None):
+    def _execute_with_list(self, args=None, **kwargs):
         '''
         Turns the given list of arguments (in argv format) into python
         parameters (*args, **kwargs) and run self.func
         '''
 
+        self.default_values.update(kwargs)
         self._create_parser(args)
         self.parser.add_argument(
                 '-h', '--help',
