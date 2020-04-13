@@ -8,6 +8,7 @@ import sys
 import traceback
 
 from collections import OrderedDict
+from contextlib import contextmanager
 from inspect import Parameter
 from itertools import chain, islice, repeat
 from pathlib import Path
@@ -647,19 +648,24 @@ class HashbangCommand:
                 kwargs[argname] = value
         return (args, kwargs)
 
-    def execute(self, args=None, **kwargs):
-        return self._execute_mode(
-            HashbangCommand.exec_mode, args=args, **kwargs)
+    exec_mode = 'execute'
 
-    def _execute_mode(self, mode, args=None, **kwargs):
-        if mode == 'execute':
+    @staticmethod
+    @contextmanager
+    def _exec_mode(mode):
+        original_mode = HashbangCommand.exec_mode
+        HashbangCommand.exec_mode = mode
+        yield
+        HashbangCommand.exec_mode = original_mode
+
+    def execute(self, args=None, **kwargs):
+        if self.exec_mode == 'execute':
             return self._execute_with_error_handling(args, **kwargs)
-        elif mode == 'help':
+        elif self.exec_mode == 'help':
             return self.help(args)
-        elif mode == 'complete':
+        elif self.exec_mode == 'complete':
             return self.complete(args)
-        else:
-            raise RuntimeError('Unknown execution mode {}'.format(mode))
+        raise RuntimeError('Unknown execution mode {}'.format(self.exec_mode))
 
     def _execute_with_error_handling(self, args=None, **kwargs):
         try:
@@ -781,28 +787,25 @@ class HashbangCommand:
         return self.func(*func_args, **func_kwargs)
 
 
-HashbangCommand.exec_mode = 'execute'
-
-
 class _DelegatingHashbangCommand(HashbangCommand):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def help(self, args):
-        HashbangCommand.exec_mode = 'help'
-        try:
-            return super()._execute_delegation(args)
-        except NoMatchingDelegate as e:
-            return super().help(args)
-        raise RuntimeError('Delegate command should call sys.exit')
+        with self._exec_mode('help'):
+            try:
+                return super()._execute_delegation(args)
+            except NoMatchingDelegate as e:
+                return super().help(args)
+            raise RuntimeError('Delegate command should call sys.exit')
 
     def complete(self, args):
-        HashbangCommand.exec_mode = 'complete'
-        try:
-            return super()._execute_delegation(args)
-        except NoMatchingDelegate as e:
-            return super().complete(args)
+        with self._exec_mode('complete'):
+            try:
+                return super()._execute_delegation(args)
+            except NoMatchingDelegate as e:
+                return super().complete(args)
 
 
 class NoMatchingDelegate(Exception):

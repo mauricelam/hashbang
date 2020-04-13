@@ -30,12 +30,14 @@ def _add_argument(argument, argparse_argument):
             argparse_argument.completer = validated
 
 
+_container = {}
+
+
 def _execute_complete(commandobj, args):
     if argcomplete is None:
         return
 
-    global _command_complete
-    cword_prefix, debug = _command_complete
+    comp_words, cword_prefix = _container['completion']
 
     parser = commandobj._create_parser(args)
     finder = argcomplete.CompletionFinder(
@@ -66,7 +68,6 @@ def _execute_complete(commandobj, args):
     remaining = remaining or ()
     #####
 
-    results = None
     completer = getattr(commandobj.func, 'completer', None)
     if completer:
         func_args, func_kwargs = commandobj.get_args(
@@ -74,14 +75,14 @@ def _execute_complete(commandobj, args):
         func_args = [arg if arg is not Parameter.empty else None
                      for arg in func_args]
         results = completer(*func_args, **func_kwargs)
-    if results is not None:
-        return results
-    else:
-        return finder.collect_completions(
-            active_parsers=active_parsers,
-            parsed_args=parsed_args,
-            cword_prefix=cword_prefix,
-            debug=debug)
+        if results is not None:
+            return results
+
+    return finder.collect_completions(
+        active_parsers=active_parsers,
+        parsed_args=parsed_args,
+        cword_prefix=cword_prefix,
+        debug=(lambda *_: None))
 
 
 def _modify_parser(commandobj, parser, args):
@@ -93,7 +94,7 @@ def _modify_parser(commandobj, parser, args):
                     comp_words,
                     cword_prefix,
                     cword_prequote,
-                    first_colon_pos):
+                    last_wordbreak_pos):
                 '''
                 Intercept argcomplete and allow attaching our own
                 completers (which can be attached to functions in addition
@@ -101,16 +102,15 @@ def _modify_parser(commandobj, parser, args):
                 knowing their relationship ahead of time.
                 '''
                 try:
-                    global _command_complete
-                    _command_complete = (cword_prefix, (lambda *_: None))
+                    _container['completion'] = (comp_words, cword_prefix)
 
                     completions = commandobj.complete(
                             args if args is not None else comp_words[1:])
                     completions = self.filter_completions(completions)
                     completions = self.quote_completions(
-                            completions, cword_prequote, first_colon_pos)
+                            completions, cword_prequote, last_wordbreak_pos)
 
-                    _command_complete = None
+                    del _container['completion']
 
                     return completions
                 except BaseException as e:
