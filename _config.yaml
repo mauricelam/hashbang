@@ -1,0 +1,6 @@
+include: [
+  'node_modules/jquery',
+  'node_modules/jquery.terminal',
+  'node_modules/jstree',
+  'node_modules/ace-builds'
+]

@@ -1,0 +1,37 @@
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+#editor {
+  flex: 2;
+}
+
+#file-tree {
+  flex: 0 1 300px;
+  overflow: auto;
+}
+
+#right-panel {
+  display: flex;
+  flex: 2;
+  flex-direction: column;
+}
+
+#term {
+  flex: 1;
+  background-color: #000;
+}
+
+#term a {
+  color: cyan;
+}

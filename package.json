@@ -1,0 +1,17 @@
+{
+  "name": "wasm-hashbang",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sandbox.js",
+  "dependencies": {
+    "ace-builds": "^1.4.9",
+    "jquery.terminal": "^2.15.2",
+    "jstree": "^3.3.9"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
