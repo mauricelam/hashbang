@@ -17,6 +17,11 @@ if __name__ == '__main__':
   echo.execute()
 ```
 
+Demo
+----
+
+You can try Hashbang in your browser here: https://mauricelam.github.io/hashbang/
+
 Installation
 ------------
 
