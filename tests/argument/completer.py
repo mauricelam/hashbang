@@ -7,6 +7,9 @@ $ completer.py --<TAB>
 $ completer.py --arg <TAB>
 app\x0bapk\x0bexe
 
+$ completer.py --arg=<TAB>
+--arg=app\x0b--arg=apk\x0b--arg=exe
+
 $ completer.py --arg a<TAB>
 app\x0bapk
 
