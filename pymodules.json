@@ -1,4 +1,4 @@
 {
-    "hashbang": "hashbang",
+    "hashbang": "hashbang/hashbang",
     "argcomplete": "https://raw.githubusercontent.com/kislyuk/argcomplete/master/argcomplete"
 }
