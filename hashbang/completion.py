@@ -82,7 +82,7 @@ def _execute_complete(commandobj, args):
         active_parsers=active_parsers,
         parsed_args=parsed_args,
         cword_prefix=cword_prefix,
-        debug=(lambda *_: None))
+        debug=argcomplete.debug)
 
 
 def _modify_parser(commandobj, parser, args):
