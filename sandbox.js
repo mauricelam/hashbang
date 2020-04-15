@@ -39,7 +39,7 @@ async function loadPythonFiles(...files) {
 }
 
 async function initPython() {
-  loadPythonFiles('module_loader.py', 'sandbox_interpreter.py')
+  await loadPythonFiles('module_loader.py', 'sandbox_interpreter.py')
   
   async function loadInterpreter() {
     return await pyodide.runPythonAsync(`Interpreter("${editor.currentFile}")`);
