@@ -1,0 +1,4 @@
+[submodule "hashbang"]
+	path = hashbang
+	url = https://github.com/mauricelam/hashbang.git
+	branch = master

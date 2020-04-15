@@ -4,6 +4,19 @@ let editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
 editor.session.setMode("ace/mode/python");
 
+window.loader = {
+  open_url: function(url) {
+    let req = new XMLHttpRequest();
+    req.open('GET', url, false);
+    try {
+      req.send();
+      return [req.response, null]
+    } catch(e) {
+      return [null, e];
+    }
+  }
+};
+
 async function parallelInvoke(...asyncFuncs) {
   return await Promise.all(asyncFuncs.map(f => f()))
 }
@@ -15,22 +28,18 @@ function synchronize(asyncFunc) {
   };
 }
 
+async function loadPythonFiles(...files) {
+  await languagePluginLoader;
+  let all_files = await Promise.all(
+    files.map(file => fetch(file).then(fetcher => fetcher.text())));
+  for (let file of all_files) {
+    // Run the files serially
+    await pyodide.runPythonAsync(file);
+  }
+}
+
 async function initPython() {
-  let [_, sandboxInterpreterCode] = await parallelInvoke(
-    async () => {
-      await languagePluginLoader;
-      await pyodide.loadPackage(['micropip']);
-      await pyodide.runPythonAsync(`
-        import micropip
-        micropip.install(['hashbang', 'argcomplete'])
-      `);
-    },
-    async () => {
-      let fetcher = await fetch('sandbox_interpreter.py');
-      return await fetcher.text();
-    },
-  );
-  await pyodide.runPythonAsync(sandboxInterpreterCode);
+  loadPythonFiles('module_loader.py', 'sandbox_interpreter.py')
   
   async function loadInterpreter() {
     return await pyodide.runPythonAsync(`Interpreter("${editor.currentFile}")`);

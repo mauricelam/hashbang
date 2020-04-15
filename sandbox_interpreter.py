@@ -4,7 +4,7 @@ import functools
 import hashbang
 import importlib
 import io
-from js import pyodide, console
+from js import console
 import js
 import os
 import pathlib
@@ -16,6 +16,11 @@ from unittest.mock import patch
 
 argcomplete.CompletionFinder.__call__ = functools.partialmethod(
     argcomplete.CompletionFinder.__call__, exit_method=sys.exit)
+
+# This function removes the prefix "--arg=", which jquery terminal doesn't
+# expect. Nerf it so we get the expected result.
+argcomplete.CompletionFinder.quote_completions = \
+    lambda self, completions, *_, **kwargs: completions
 
 
 class Interpreter(code.InteractiveInterpreter):

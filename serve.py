@@ -3,8 +3,9 @@
 import http.server
 import socketserver
 import os
+import sys
 
-PORT = 8000
+PORT = int(sys.argv[1]) if len(sys.argv) >= 2 else 8000
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
