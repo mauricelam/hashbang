@@ -17,9 +17,69 @@ window.loader = {
   }
 };
 
-async function parallelInvoke(...asyncFuncs) {
-  return await Promise.all(asyncFuncs.map(f => f()))
+
+class PyEnv {
+
+  static instance() {
+    let currEnv = env;
+    env = new PyEnv();
+    return currEnv;
+  }
+
+  constructor() {
+    this.worker = new Worker('./pyworker.js');
+    this.worker.onmessage = (e) => {
+      console.log('hi message', e);
+      switch (e.data.action) {
+        case 'echoFormatted':
+          term.echoFormatted(e.data.text, e.data.color);
+          break;
+        case 'printExitCode':
+          term.printExitCode(e.data.code);
+          break;
+      }
+    };
+    this.worker.onerror = function(e) {
+      console.log('error :(', e);
+    };
+  }
+
+  runShell(cmd, code) {
+    let channel = new MessageChannel();
+    this.worker.postMessage({
+      action: 'runShell',
+      file: editor.currentFile,
+      cmd: cmd,
+      code: code,
+      returnPort: channel.port2,
+    },
+    [channel.port2]);
+    return new Promise((resolve, reject) => {
+      channel.port1.onmessage = resolve;
+    });
+  }
+
+  runComplete(cmd, cursorPos, code) {
+    let channel = new MessageChannel();
+    this.worker.postMessage({
+      action: 'runComplete',
+      file: editor.currentFile,
+      cmd: cmd,
+      cursorPos: cursorPos,
+      code: code,
+      returnPort: channel.port2,
+    },
+    [channel.port2]);
+    return new Promise((resolve, reject) => {
+      channel.port1.onmessage = (e) => {
+        console.log('Port message', e)
+        resolve(e.data);
+      };
+    });
+  }
 }
+
+let env = new PyEnv();
 
 function synchronize(asyncFunc) {
   return function(...args) {
@@ -28,37 +88,22 @@ function synchronize(asyncFunc) {
   };
 }
 
-async function loadPythonFiles(...files) {
-  await languagePluginLoader;
-  let all_files = await Promise.all(
-    files.map(file => fetch(file).then(fetcher => fetcher.text())));
-  for (let file of all_files) {
-    // Run the files serially
-    await pyodide.runPythonAsync(file);
-  }
-}
-
 async function initPython() {
-  await loadPythonFiles('module_loader.py', 'sandbox_interpreter.py')
-  
-  async function loadInterpreter() {
-    return await pyodide.runPythonAsync(`Interpreter("${editor.currentFile}")`);
-  }
-
   let term = $('#term').terminal(
-    async (cmd) => (await loadInterpreter()).runshell(cmd, editor.getValue()),
+    async (cmd) => {
+      await PyEnv.instance().runShell(cmd, editor.getValue());
+    },
     {
       greetings: `#! Welcome to the Hashbang playground (powered by Pyodide)`,
       prompt: "[[;orange;]$ ]",
-      completion: synchronize(async function(cmd) {
-        let interpreter = await loadInterpreter();
-        let completions = interpreter.runcomplete(
+      completion: async function(cmd) {
+        let completions = await PyEnv.instance().runComplete(
           this.get_command(),
-          /* cursorPos= */ this.before_cursor(false).length,
-          /* code= */ editor.getValue())
+          this.before_cursor(false).length,
+          editor.getValue());
         console.log('completions', completions);
         return completions;
-      }),
+      },
     }
   );
   term.echo(

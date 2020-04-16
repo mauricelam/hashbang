@@ -40,7 +40,7 @@ class Interpreter(code.InteractiveInterpreter):
                             stdout=io.StringIO(),
                             stderr=io.StringIO(),
                             argv=shlex.split(cmd)),\
-             patch('hashbang.completion.argcomplete', new=None):
+                patch('hashbang.completion.argcomplete', new=None):
             if not sys.argv:
                 return
             stem = pathlib.Path(self._file).stem

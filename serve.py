@@ -22,6 +22,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     }
 
     def __init__(self, *args, **kwargs):
+        print('init handler')
         super().__init__(*args, **kwargs)
 
 
