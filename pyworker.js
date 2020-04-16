@@ -1,4 +1,4 @@
-self.languagePluginUrl = 'http://localhost:8000/pyodide/pyodide_dev.js';
+self.languagePluginUrl = 'pyodide/pyodide_dev.js';
 importScripts('pyodide/pyodide_dev.js');
 
 self.loader = {
