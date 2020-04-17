@@ -32,14 +32,12 @@ async function initPython() {
         'text': text,
         'color': color,
       })
-      console.log('echo formatted', text, color)
     },
     printExitCode: function(code) {
       self.postMessage({
         'action': 'printExitCode',
         'code': code,
       })
-      console.log('print exit code', code);
     }
   };
   await loadPythonFiles('module_loader.py', 'sandbox_interpreter.py')
@@ -59,7 +57,6 @@ async function handleMessage(message) {
       message.returnPort.postMessage('done');
       break;
     case 'runComplete':
-      console.log('runComplete', message.cmd, message.cursorPos);
       let completions = interpreter.runcomplete(message.cmd, message.cursorPos, message.code);
       message.returnPort.postMessage(completions);
       break;

@@ -20,16 +20,9 @@ window.loader = {
 
 class PyEnv {
 
-  static instance() {
-    let currEnv = env;
-    env = new PyEnv();
-    return currEnv;
-  }
-
   constructor() {
     this.worker = new Worker('./pyworker.js');
     this.worker.onmessage = (e) => {
-      console.log('hi message', e);
       switch (e.data.action) {
         case 'echoFormatted':
           term.echoFormatted(e.data.text, e.data.color);
@@ -79,25 +72,18 @@ class PyEnv {
   }
 }
 
-let env = new PyEnv();
-
-function synchronize(asyncFunc) {
-  return function(...args) {
-    let callback = args.pop();
-    asyncFunc.apply(this, args).then(callback);
-  };
-}
+let pyEnv = new PyEnv();
 
 async function initPython() {
   let term = $('#term').terminal(
     async (cmd) => {
-      await PyEnv.instance().runShell(cmd, editor.getValue());
+      await pyEnv.runShell(cmd, editor.getValue());
     },
     {
       greetings: `#! Welcome to the Hashbang playground (powered by Pyodide)`,
       prompt: "[[;orange;]$ ]",
       completion: async function(cmd) {
-        let completions = await PyEnv.instance().runComplete(
+        let completions = await pyEnv.runComplete(
           this.get_command(),
           this.before_cursor(false).length,
           editor.getValue());
@@ -145,8 +131,8 @@ initPython();
 
   $('#file-tree').jstree({
     core: {
-      data: synchronize(obj =>
-        lsGithub((obj.original && obj.original.apiUrl) || MY_TREE_ROOT)),
+      data: (obj, cb) =>
+        lsGithub((obj.original && obj.original.apiUrl) || MY_TREE_ROOT).then(cb),
       themes: {
         name: 'default-dark'
       }
